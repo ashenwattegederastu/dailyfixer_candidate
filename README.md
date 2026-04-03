@@ -252,3 +252,144 @@ When contributing:
 ## Contact
 
 [Add contact information here]
+
+## Sinhala i18n rollout plan and JSP view map
+
+The project currently has **112 JSP views**. To avoid overcomplication and keep delivery safe, localization rollout is split into phases.
+
+### Phase 1 (implemented now)
+- Shared entry points and high-impact public pages:
+  - `src/main/webapp/pages/shared/header.jsp`
+  - `src/main/webapp/index.jsp`
+
+### Phase 2 (shared and auth flows)
+- Shared:
+  - `src/main/webapp/pages/shared/footer.jsp`
+  - `src/main/webapp/pages/shared/leaderboard.jsp`
+- Authentication:
+  - `src/main/webapp/pages/authentication/editProfile.jsp`
+  - `src/main/webapp/pages/authentication/forgot_password/forgot_password.jsp`
+  - `src/main/webapp/pages/authentication/forgot_password/reset_password.jsp`
+  - `src/main/webapp/pages/authentication/login.jsp`
+  - `src/main/webapp/pages/authentication/register/preliminarySignup.jsp`
+  - `src/main/webapp/pages/authentication/register/registerDriver.jsp`
+  - `src/main/webapp/pages/authentication/register/registerStore.jsp`
+  - `src/main/webapp/pages/authentication/register/registerTechnician.jsp`
+  - `src/main/webapp/pages/authentication/register/registerUser.jsp`
+  - `src/main/webapp/pages/authentication/register/registerVolunteer.jsp`
+  - `src/main/webapp/pages/authentication/register/volunteerRegistrationSuccess.jsp`
+  - `src/main/webapp/pages/authentication/resetPassword.jsp`
+
+### Phase 3 (core user-facing functional pages)
+- Bookings:
+  - `src/main/webapp/pages/bookings/create-booking.jsp`
+- Chat:
+  - `src/main/webapp/pages/chat/chat-list.jsp`
+  - `src/main/webapp/pages/chat/chat-view.jsp`
+- Diagnostic:
+  - `src/main/webapp/pages/diagnostic/diagnostic-browse.jsp`
+  - `src/main/webapp/pages/diagnostic/diagnostic-runner.jsp`
+- Guides:
+  - `src/main/webapp/pages/guides/admin-flagged.jsp`
+  - `src/main/webapp/pages/guides/admin-list.jsp`
+  - `src/main/webapp/pages/guides/create.jsp`
+  - `src/main/webapp/pages/guides/edit.jsp`
+  - `src/main/webapp/pages/guides/list.jsp`
+  - `src/main/webapp/pages/guides/my-flagged-guides.jsp`
+  - `src/main/webapp/pages/guides/my-guides.jsp`
+  - `src/main/webapp/pages/guides/view.jsp`
+- Help:
+  - `src/main/webapp/pages/help/driverprocedure.jsp`
+  - `src/main/webapp/pages/help/driverprocess.jsp`
+  - `src/main/webapp/pages/help/howtowriteaguide.jsp`
+  - `src/main/webapp/pages/help/storeprocess.jsp`
+  - `src/main/webapp/pages/help/technicianprocess.jsp`
+- Policies:
+  - `src/main/webapp/pages/policies/driver-policies.jsp`
+- Services:
+  - `src/main/webapp/pages/services/service-listing.jsp`
+- Store/marketplace:
+  - `src/main/webapp/pages/stores/Cancel.jsp`
+  - `src/main/webapp/pages/stores/Cart.jsp`
+  - `src/main/webapp/pages/stores/Success.jsp`
+  - `src/main/webapp/pages/stores/category_products.jsp`
+  - `src/main/webapp/pages/stores/checkout.jsp`
+  - `src/main/webapp/pages/stores/product_details.jsp`
+  - `src/main/webapp/pages/stores/store.jsp`
+  - `src/main/webapp/pages/stores/store_main.jsp`
+
+### Phase 4 (all dashboards)
+- Admin dashboard:
+  - `src/main/webapp/pages/dashboards/admindash/admindashmain.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/deliveryRates.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/diagnostic-tree-builder.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/diagnostic-trees.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/driverIncidents.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/driverRequestDetail.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/driverRequests.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/payouts.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/products.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/refunds.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/sidebar.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/store_dashboard.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/userManagement.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/volunteerRequestDetail.jsp`
+  - `src/main/webapp/pages/dashboards/admindash/volunteerRequests.jsp`
+- Driver dashboard:
+  - `src/main/webapp/pages/dashboards/driverdash/acceptedOrders.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/addVehicle.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/completedOrders.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/deliveryrequests.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/driverdashmain.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/driversignup.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/editVehicle.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/finances.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/myProfile.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/sidebar.jsp`
+  - `src/main/webapp/pages/dashboards/driverdash/vehicleManagement.jsp`
+- Store dashboard:
+  - `src/main/webapp/pages/dashboards/storedash/addDiscount.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/addProduct.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/completedorders.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/discountList.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/editDiscount.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/editProduct.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/finances.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/myProfile.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/myStore.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/orders.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/orders_hardcoded.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/productList.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/storeReviews.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/storedashmain.jsp`
+  - `src/main/webapp/pages/dashboards/storedash/upfordelivery.jsp`
+- Technician dashboard:
+  - `src/main/webapp/pages/dashboards/techniciandash/addService.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/availability.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/booking-calendar.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/booking-requests.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/completedBookings.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/editService.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/recurringContracts.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/serviceListings.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/sidebar.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/technicianProfile.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/technicianProfileEdit.jsp`
+  - `src/main/webapp/pages/dashboards/techniciandash/techniciandashmain.jsp`
+- User dashboard:
+  - `src/main/webapp/pages/dashboards/userdash/activeBookings.jsp`
+  - `src/main/webapp/pages/dashboards/userdash/cancelledBookings.jsp`
+  - `src/main/webapp/pages/dashboards/userdash/completedBookings.jsp`
+  - `src/main/webapp/pages/dashboards/userdash/myProfile.jsp`
+  - `src/main/webapp/pages/dashboards/userdash/myPurchases.jsp`
+  - `src/main/webapp/pages/dashboards/userdash/recurringContracts.jsp`
+  - `src/main/webapp/pages/dashboards/userdash/sidebar.jsp`
+  - `src/main/webapp/pages/dashboards/userdash/userdashmain.jsp`
+- Volunteer dashboard:
+  - `src/main/webapp/pages/dashboards/volunteerdash/diagnostic-tree-builder.jsp`
+  - `src/main/webapp/pages/dashboards/volunteerdash/diagnostic-trees.jsp`
+  - `src/main/webapp/pages/dashboards/volunteerdash/guideComments.jsp`
+  - `src/main/webapp/pages/dashboards/volunteerdash/myProfile.jsp`
+  - `src/main/webapp/pages/dashboards/volunteerdash/notifications.jsp`
+  - `src/main/webapp/pages/dashboards/volunteerdash/sidebar.jsp`
+  - `src/main/webapp/pages/dashboards/volunteerdash/volunteerdashmain.jsp`
