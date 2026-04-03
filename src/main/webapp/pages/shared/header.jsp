@@ -48,8 +48,8 @@
 
                 <!-- Dynamic Login/Logout -->
                 <div class="nav-buttons">
-                    <a href="${pageContext.request.contextPath}/change-language?lang=en" class="btn-login"><%= bundle.getString("nav.english") %></a>
-                    <a href="${pageContext.request.contextPath}/change-language?lang=si" class="btn-login"><%= bundle.getString("nav.sinhala") %></a>
+                    <a href="${pageContext.request.contextPath}/change-language?lang=en" class="btn-login" aria-label="Switch to English"><%= bundle.getString("nav.english") %></a>
+                    <a href="${pageContext.request.contextPath}/change-language?lang=si" class="btn-login" aria-label="Switch to Sinhala"><%= bundle.getString("nav.sinhala") %></a>
                     <c:choose>
                         <c:when test="${not empty sessionScope.currentUser}">
                             <!-- User is logged in -->
