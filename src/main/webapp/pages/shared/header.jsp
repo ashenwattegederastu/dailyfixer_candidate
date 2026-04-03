@@ -13,6 +13,11 @@
     }
     String _lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
     ResourceBundle bundle = I18nUtil.getBundle(_lang);
+    String _returnUrl = request.getRequestURI();
+    if (request.getQueryString() != null && !request.getQueryString().isBlank()) {
+        _returnUrl += "?" + request.getQueryString();
+    }
+    String _encodedReturnUrl = java.net.URLEncoder.encode(_returnUrl, "UTF-8");
 %>
 
         <head>
@@ -48,8 +53,8 @@
 
                 <!-- Dynamic Login/Logout -->
                 <div class="nav-buttons">
-                    <a href="${pageContext.request.contextPath}/change-language?lang=en" class="btn-login" aria-label="<%= bundle.getString("nav.switchToEnglish") %>"><%= bundle.getString("nav.english") %></a>
-                    <a href="${pageContext.request.contextPath}/change-language?lang=si" class="btn-login" aria-label="<%= bundle.getString("nav.switchToSinhala") %>"><%= bundle.getString("nav.sinhala") %></a>
+                    <a href="${pageContext.request.contextPath}/change-language?lang=en&returnUrl=<%= _encodedReturnUrl %>" class="btn-login" aria-label="<%= bundle.getString("nav.switchToEnglish") %>"><%= bundle.getString("nav.english") %></a>
+                    <a href="${pageContext.request.contextPath}/change-language?lang=si&returnUrl=<%= _encodedReturnUrl %>" class="btn-login" aria-label="<%= bundle.getString("nav.switchToSinhala") %>"><%= bundle.getString("nav.sinhala") %></a>
                     <c:choose>
                         <c:when test="${not empty sessionScope.currentUser}">
                             <!-- User is logged in -->
