@@ -1,12 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-    <%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ page session="true" %>
+<%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
+<%
+    String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+    ResourceBundle bundle = I18nUtil.getBundle(lang);
+    String htmlLang = I18nUtil.normalizeLanguage(lang);
+%>
         <!DOCTYPE html>
-        <html lang="en">
+        <html lang="<%= htmlLang %>">
 
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Volunteer Leaderboard | Daily Fixer</title>
+            <title><%= bundle.getString("leaderboard.pageTitle") %></title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
                 rel="stylesheet">
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
@@ -84,33 +91,33 @@
 
             <!-- Simple Navbar -->
             <header class="topbar">
-                <div class="logo">Daily Fixer</div>
+                <div class="logo"><%= bundle.getString("brand.name") %></div>
                 <div>
                     <a href="${pageContext.request.contextPath}/"
-                        style="color: var(--foreground); text-decoration: none; margin-right: 20px;">Home</a>
+                        style="color: var(--foreground); text-decoration: none; margin-right: 20px;"><%= bundle.getString("leaderboard.home") %></a>
                     <c:if test="${sessionScope.currentUser != null}">
-                        <a href="${pageContext.request.contextPath}/pages/dashboards/volunteerdash/volunteerdashmain.jsp" class="btn-primary">Return to Dashboard</a>
+                        <a href="${pageContext.request.contextPath}/pages/dashboards/volunteerdash/volunteerdashmain.jsp" class="btn-primary"><%= bundle.getString("leaderboard.returnToDashboard") %></a>
                     </c:if>
                     <c:if test="${sessionScope.currentUser == null}">
                         <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp"
-                            class="btn-primary">Login</a>
+                            class="btn-primary"><%= bundle.getString("leaderboard.login") %></a>
                     </c:if>
                 </div>
             </header>
 
             <main class="leaderboard-container">
                 <div class="leaderboard-header">
-                    <h2>🏆 Volunteer Hall of Fame</h2>
-                    <p style="color: var(--muted-foreground);">Recognizing our top contributors</p>
+                    <h2><%= bundle.getString("leaderboard.title") %></h2>
+                    <p style="color: var(--muted-foreground);"><%= bundle.getString("leaderboard.subtitle") %></p>
                 </div>
 
                 <table class="leaderboard-table">
                     <thead>
                         <tr>
-                            <th width="10%">Rank</th>
-                            <th width="40%">Volunteer</th>
-                            <th width="30%">Top Badge</th>
-                            <th width="20%" style="text-align: right;">Reputation</th>
+                            <th width="10%"><%= bundle.getString("leaderboard.col.rank") %></th>
+                            <th width="40%"><%= bundle.getString("leaderboard.col.volunteer") %></th>
+                            <th width="30%"><%= bundle.getString("leaderboard.col.topBadge") %></th>
+                            <th width="20%" style="text-align: right;"><%= bundle.getString("leaderboard.col.reputation") %></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -135,7 +142,7 @@
                             <tr>
                                 <td colspan="4"
                                     style="text-align: center; padding: 40px; color: var(--muted-foreground);">
-                                    No reputation data available yet. Be the first to start contributing!
+                                    <%= bundle.getString("leaderboard.empty") %>
                                 </td>
                             </tr>
                         </c:if>

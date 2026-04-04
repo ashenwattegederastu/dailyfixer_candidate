@@ -1,10 +1,17 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+    <%@ page session="true" %>
+    <%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
+    <%
+        String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+        ResourceBundle bundle = I18nUtil.getBundle(lang);
+        String htmlLang = I18nUtil.normalizeLanguage(lang);
+    %>
         <!DOCTYPE html>
-        <html>
+        <html lang="<%= htmlLang %>">
 
         <head>
-            <title>Register - DailyFixer</title>
+            <title><%= bundle.getString("auth.registerUser.pageTitle") %></title>
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
             <style>
                 body {
@@ -90,8 +97,8 @@
             <div class="register-container">
                 <div class="form-container">
                     <div class="page-header">
-                        <h2>Create Account</h2>
-                        <p style="color: var(--muted-foreground)">Join DailyFixer as a User</p>
+                        <h2><%= bundle.getString("auth.registerUser.title") %></h2>
+                        <p style="color: var(--muted-foreground)"><%= bundle.getString("auth.registerUser.subtitle") %></p>
                     </div>
 
                     <% String serverError=(String) request.getAttribute("errorMsg"); %>
@@ -104,59 +111,59 @@
                                 <form id="registerForm" method="post" action="${pageContext.request.contextPath}/registerUser">
                                     <div class="form-cols">
                                         <div class="form-group">
-                                            <label for="firstName">First Name</label>
-                                            <input type="text" name="firstName" id="firstName" placeholder="First Name">
+                                            <label for="firstName"><%= bundle.getString("auth.registerUser.firstName") %></label>
+                                            <input type="text" name="firstName" id="firstName" placeholder="<%= bundle.getString("auth.registerUser.firstName") %>">
                                             <div id="firstNameError" class="error-text"></div>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="lastName">Last Name</label>
-                                            <input type="text" name="lastName" id="lastName" placeholder="Last Name">
+                                            <label for="lastName"><%= bundle.getString("auth.registerUser.lastName") %></label>
+                                            <input type="text" name="lastName" id="lastName" placeholder="<%= bundle.getString("auth.registerUser.lastName") %>">
                                             <div id="lastNameError" class="error-text"></div>
                                         </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="username">Username</label>
+                                        <label for="username"><%= bundle.getString("auth.registerUser.username") %></label>
                                         <input type="text" name="username" id="username"
-                                            placeholder="Choose a username">
+                                            placeholder="<%= bundle.getString("auth.registerUser.usernamePlaceholder") %>">
                                         <div id="usernameError" class="error-text"></div>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="email">Email Address</label>
-                                        <input type="email" name="email" id="email" placeholder="name@example.com">
+                                        <label for="email"><%= bundle.getString("auth.registerUser.emailAddress") %></label>
+                                        <input type="email" name="email" id="email" placeholder="<%= bundle.getString("auth.registerUser.emailPlaceholder") %>">
                                         <!-- input[type=email] acts like text in framework css generally, or we use class -->
                                         <div id="emailError" class="error-text"></div>
                                     </div>
 
                                     <div class="form-cols">
                                         <div class="form-group">
-                                            <label for="password">Password</label>
+                                            <label for="password"><%= bundle.getString("auth.registerUser.password") %></label>
                                             <input type="password" name="password" id="password"
-                                                placeholder="Create a password">
+                                                placeholder="<%= bundle.getString("auth.registerUser.passwordPlaceholder") %>">
                                             <div id="passwordError" class="error-text"></div>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="confirmPassword">Confirm Password</label>
+                                            <label for="confirmPassword"><%= bundle.getString("auth.registerUser.confirmPassword") %></label>
                                             <input type="password" name="confirmPassword" id="confirmPassword"
-                                                placeholder="Confirm password">
+                                                placeholder="<%= bundle.getString("auth.registerUser.confirmPasswordPlaceholder") %>">
                                             <div id="confirmPasswordError" class="error-text"></div>
                                         </div>
                                     </div>
 
                                     <div class="form-cols">
                                         <div class="form-group">
-                                            <label for="phone">Phone Number</label>
-                                            <input type="text" name="phone" id="phone" placeholder="10-digit number">
+                                            <label for="phone"><%= bundle.getString("auth.registerUser.phoneNumber") %></label>
+                                            <input type="text" name="phone" id="phone" placeholder="<%= bundle.getString("auth.registerUser.phonePlaceholder") %>">
                                             <div id="phoneError" class="error-text"></div>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="city">City</label>
+                                            <label for="city"><%= bundle.getString("auth.registerUser.city") %></label>
                                             <select name="city" id="city" class="filter-select" style="width: 100%">
-                                                <option value="">-- Select City --</option>
+                                                <option value=""><%= bundle.getString("auth.registerUser.selectCity") %></option>
                                                 <option>Colombo</option>
                                                 <option>Kandy</option>
                                                 <option>Galle</option>
@@ -187,10 +194,10 @@
                                     </div>
 
                                     <button type="submit" class="btn-primary"
-                                        style="width: 100%; margin-top: 20px;">Register</button>
+                                        style="width: 100%; margin-top: 20px;"><%= bundle.getString("auth.registerUser.register") %></button>
                                 </form>
 
-                                <p class="login-link">Already have an account? <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp">Login here</a></p>
+                                <p class="login-link"><%= bundle.getString("auth.registerUser.alreadyHaveAccount") %> <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp"><%= bundle.getString("auth.registerUser.loginHere") %></a></p>
                 </div>
             </div>
 
@@ -201,34 +208,34 @@
                     let hasError = false;
                     const f = id => document.getElementById(id).value.trim();
 
-                    if (!f('firstName')) { document.getElementById('firstNameError').textContent = 'First name required'; hasError = true; }
-                    if (!f('lastName')) { document.getElementById('lastNameError').textContent = 'Last name required'; hasError = true; }
-                    if (!f('username')) { document.getElementById('usernameError').textContent = 'Username required'; hasError = true; }
-                    if (!f('email')) { document.getElementById('emailError').textContent = 'Email required'; hasError = true; }
-                    if (f('password').length < 6) { document.getElementById('passwordError').textContent = 'Min 6 chars'; hasError = true; }
-                    if (f('password') !== f('confirmPassword')) { document.getElementById('confirmPasswordError').textContent = 'Passwords do not match'; hasError = true; }
-                    if (!f('city')) { document.getElementById('cityError').textContent = 'City required'; hasError = true; }
+                    if (!f('firstName')) { document.getElementById('firstNameError').textContent = '<%= bundle.getString("auth.validation.firstNameRequired") %>'; hasError = true; }
+                    if (!f('lastName')) { document.getElementById('lastNameError').textContent = '<%= bundle.getString("auth.validation.lastNameRequired") %>'; hasError = true; }
+                    if (!f('username')) { document.getElementById('usernameError').textContent = '<%= bundle.getString("auth.validation.usernameRequired") %>'; hasError = true; }
+                    if (!f('email')) { document.getElementById('emailError').textContent = '<%= bundle.getString("auth.validation.emailRequired") %>'; hasError = true; }
+                    if (f('password').length < 6) { document.getElementById('passwordError').textContent = '<%= bundle.getString("auth.validation.passwordMin6") %>'; hasError = true; }
+                    if (f('password') !== f('confirmPassword')) { document.getElementById('confirmPasswordError').textContent = '<%= bundle.getString("auth.validation.passwordsDoNotMatch") %>'; hasError = true; }
+                    if (!f('city')) { document.getElementById('cityError').textContent = '<%= bundle.getString("auth.validation.cityRequired") %>'; hasError = true; }
 
                     // Phone number validation: exactly 10 digits
                     const phoneVal = f('phone').replace(/\D/g, ''); // remove non-digit characters
                     if (!phoneVal) {
-                        document.getElementById('phoneError').textContent = 'Phone number required';
+                        document.getElementById('phoneError').textContent = '<%= bundle.getString("auth.validation.phoneRequired") %>';
                         hasError = true;
                     } else if (phoneVal.length !== 10) {
-                        document.getElementById('phoneError').textContent = 'Phone must be exactly 10 digits';
+                        document.getElementById('phoneError').textContent = '<%= bundle.getString("auth.validation.phoneMustBe10") %>';
                         hasError = true;
                     }
 
                     // Email validation: required + valid format
                     const emailVal = f('email');
                     if (!emailVal) {
-                        document.getElementById('emailError').textContent = 'Email required';
+                        document.getElementById('emailError').textContent = '<%= bundle.getString("auth.validation.emailRequired") %>';
                         hasError = true;
                     } else {
                         // Simple regex for basic email format check
                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                         if (!emailRegex.test(emailVal)) {
-                            document.getElementById('emailError').textContent = 'Invalid email format';
+                                document.getElementById('emailError').textContent = '<%= bundle.getString("auth.validation.invalidEmailFormat") %>';
                             hasError = true;
                         }
                     }

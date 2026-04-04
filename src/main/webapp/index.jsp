@@ -1,16 +1,22 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         <%@ page session="true" %>
+            <%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
+                <%
+                    String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+                    ResourceBundle bundle = I18nUtil.getBundle(lang);
+                    String htmlLang = I18nUtil.normalizeLanguage(lang);
+                %>
 
             <!DOCTYPE html>
-            <html lang="en">
+            <html lang="<%= htmlLang %>">
 
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Daily Fixer - Fix, Learn, Restore</title>
+                <title><%= bundle.getString("home.pageTitle") %></title>
                 <link
-                        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+                        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap"
                         rel="stylesheet">
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
                 <!-- Importing Phosphor Icon Library Locally from assets-->
@@ -33,17 +39,15 @@
                 <!-- Hero Section 1: Community -->
                 <section class="hero-section active" id="hero1">
                     <div class="hero-content">
-                        <h1>Join a community that helps you fix, learn, and restore what matters.</h1>
-                        <p>Connect with thousands of people who share your passion for fixing and learning.</p>
+                        <h1><%= bundle.getString("home.hero1.title") %></h1>
+                        <p><%= bundle.getString("home.hero1.subtitle") %></p>
                         <c:choose>
                             <c:when test="${not empty sessionScope.currentUser}">
                                 <a href="${pageContext.request.contextPath}/pages/diagnostic/diagnostic-browse.jsp"
-                                    class="hero-cta">Start
-                                    Diagnosing</a>
+                                    class="hero-cta"><%= bundle.getString("home.hero1.cta.startDiagnosing") %></a>
                             </c:when>
                             <c:otherwise>
-                                <a href="${pageContext.request.contextPath}/pages/authentication/register/preliminarySignup.jsp" class="hero-cta">Get
-                                    Started</a>
+                                <a href="${pageContext.request.contextPath}/pages/authentication/register/preliminarySignup.jsp" class="hero-cta"><%= bundle.getString("home.hero1.cta.getStarted") %></a>
                             </c:otherwise>
                         </c:choose>
                     </div>
@@ -55,9 +59,9 @@
                 <!-- Hero Section 2: View Guides -->
                 <section class="hero-section" id="hero2">
                     <div class="hero-content">
-                        <h1>Master Repairs with Our Guides</h1>
-                        <p>Access thousands of step-by-step repair guides created by experts and community members.</p>
-                        <a href="${pageContext.request.contextPath}/guides" class="hero-cta">Explore Guides</a>
+                        <h1><%= bundle.getString("home.hero2.title") %></h1>
+                        <p><%= bundle.getString("home.hero2.subtitle") %></p>
+                        <a href="${pageContext.request.contextPath}/guides" class="hero-cta"><%= bundle.getString("home.hero2.cta") %></a>
                     </div>
                     <div class="scroll-indicator">
                         <div class="chevron"></div>
@@ -67,22 +71,22 @@
                 <!-- Features Section: View Guides -->
                 <section class="features-section" id="guides">
                     <div class="features-container">
-                        <h2 class="section-title">Why Choose Our Repair Guides?</h2>
+                        <h2 class="section-title"><%= bundle.getString("home.guides.sectionTitle") %></h2>
                         <div class="features-grid">
                             <div class="feature-card">
                                 <div class="feature-icon"><i class="ph ph-books"></i></div>
-                                <h3>Comprehensive Library</h3>
-                                <p>Thousands of detailed guides covering everything from electronics to appliances.</p>
+                                <h3><%= bundle.getString("home.guides.feature1.title") %></h3>
+                                <p><%= bundle.getString("home.guides.feature1.desc") %></p>
                             </div>
                             <div class="feature-card">
                                 <div class="feature-icon"><i class="ph ph-users-three"></i></div>
-                                <h3>Community Driven</h3>
-                                <p>Learn from experts and experienced technicians in our active community.</p>
+                                <h3><%= bundle.getString("home.guides.feature2.title") %></h3>
+                                <p><%= bundle.getString("home.guides.feature2.desc") %></p>
                             </div>
                             <div class="feature-card">
                                 <div class="feature-icon"><i class="ph ph-pencil-ruler"></i></div>
-                                <h3>Easy to Follow</h3>
-                                <p>Step-by-step instructions with photos and videos for every repair.</p>
+                                <h3><%= bundle.getString("home.guides.feature3.title") %></h3>
+                                <p><%= bundle.getString("home.guides.feature3.desc") %></p>
                             </div>
                         </div>
                     </div>
@@ -91,9 +95,9 @@
                 <!-- Hero Section 3: Technician Booking -->
                 <section class="hero-section" id="hero3">
                     <div class="hero-content">
-                        <h1>Need Professional Help?</h1>
-                        <p>Book a certified technician for complex repairs. Fast, reliable, and affordable.</p>
-                        <a href="${pageContext.request.contextPath}/findtech.jsp" class="hero-cta">Book Now</a>
+                        <h1><%= bundle.getString("home.hero3.title") %></h1>
+                        <p><%= bundle.getString("home.hero3.subtitle") %></p>
+                        <a href="${pageContext.request.contextPath}/findtech.jsp" class="hero-cta"><%= bundle.getString("home.hero3.cta") %></a>
                     </div>
                     <div class="scroll-indicator">
                         <div class="chevron"></div>
@@ -103,22 +107,22 @@
                 <!-- Features Section: Technician Booking -->
                 <section class="features-section" id="technician">
                     <div class="features-container">
-                        <h2 class="section-title">Professional Technician Services</h2>
+                        <h2 class="section-title"><%= bundle.getString("home.technician.sectionTitle") %></h2>
                         <div class="features-grid">
                             <div class="feature-card">
                                 <div class="feature-icon">✓</div>
-                                <h3>Certified Professionals</h3>
-                                <p>All technicians are verified and certified in their respective fields.</p>
+                                <h3><%= bundle.getString("home.technician.feature1.title") %></h3>
+                                <p><%= bundle.getString("home.technician.feature1.desc") %></p>
                             </div>
                             <div class="feature-card">
                                 <div class="feature-icon">⏱️</div>
-                                <h3>Quick Response</h3>
-                                <p>Get a technician at your door within 24 hours in most areas.</p>
+                                <h3><%= bundle.getString("home.technician.feature2.title") %></h3>
+                                <p><%= bundle.getString("home.technician.feature2.desc") %></p>
                             </div>
                             <div class="feature-card">
                                 <div class="feature-icon">💰</div>
-                                <h3>Transparent Pricing</h3>
-                                <p>No hidden fees. Get a quote before any work begins.</p>
+                                <h3><%= bundle.getString("home.technician.feature3.title") %></h3>
+                                <p><%= bundle.getString("home.technician.feature3.desc") %></p>
                             </div>
                         </div>
                     </div>
