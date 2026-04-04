@@ -53,8 +53,26 @@
 
                 <!-- Dynamic Login/Logout -->
                 <div class="nav-buttons">
-                    <a href="${pageContext.request.contextPath}/change-language?lang=en&returnUrl=<%= _encodedReturnUrl %>" class="btn-login" aria-label="<%= bundle.getString("nav.switchToEnglish") %>"><%= bundle.getString("nav.english") %></a>
-                    <a href="${pageContext.request.contextPath}/change-language?lang=si&returnUrl=<%= _encodedReturnUrl %>" class="btn-login" aria-label="<%= bundle.getString("nav.switchToSinhala") %>"><%= bundle.getString("nav.sinhala") %></a>
+                    <div class="language-switcher" style="position: relative; display: inline-block;">
+                        <button type="button"
+                                class="btn-login"
+                                id="lang-menu-btn"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                aria-label="<%= bundle.getString("nav.languageMenu") %>"
+                                title="<%= bundle.getString("nav.languageMenu") %>">
+                            <i class="ph ph-translate"></i>
+                        </button>
+                        <div id="lang-menu"
+                             style="display:none; position:absolute; right:0; top:110%; min-width:140px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow-md); z-index:1000;">
+                            <a href="${pageContext.request.contextPath}/change-language?lang=en&returnUrl=<%= _encodedReturnUrl %>"
+                               style="display:block; padding:10px 12px; text-decoration:none; color:var(--foreground);"
+                               aria-label="<%= bundle.getString("nav.switchToEnglish") %>"><%= bundle.getString("nav.english") %></a>
+                            <a href="${pageContext.request.contextPath}/change-language?lang=si&returnUrl=<%= _encodedReturnUrl %>"
+                               style="display:block; padding:10px 12px; text-decoration:none; color:var(--foreground); border-top:1px solid var(--border);"
+                               aria-label="<%= bundle.getString("nav.switchToSinhala") %>"><%= bundle.getString("nav.sinhala") %></a>
+                        </div>
+                    </div>
                     <c:choose>
                         <c:when test="${not empty sessionScope.currentUser}">
                             <!-- User is logged in -->
@@ -96,4 +114,20 @@
                 navLinks.classList.toggle('active');
                 hamburger.classList.toggle('active');
             });
+
+            const langMenuBtn = document.getElementById('lang-menu-btn');
+            const langMenu = document.getElementById('lang-menu');
+            if (langMenuBtn && langMenu) {
+                langMenuBtn.addEventListener('click', () => {
+                    const open = langMenu.style.display === 'block';
+                    langMenu.style.display = open ? 'none' : 'block';
+                    langMenuBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+                });
+                document.addEventListener('click', (e) => {
+                    if (!langMenu.contains(e.target) && !langMenuBtn.contains(e.target)) {
+                        langMenu.style.display = 'none';
+                        langMenuBtn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
         </script>

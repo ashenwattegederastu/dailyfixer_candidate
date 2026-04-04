@@ -393,3 +393,17 @@ The project currently has **112 JSP views**. To avoid overcomplication and keep 
   - `src/main/webapp/pages/dashboards/volunteerdash/notifications.jsp`
   - `src/main/webapp/pages/dashboards/volunteerdash/sidebar.jsp`
   - `src/main/webapp/pages/dashboards/volunteerdash/volunteerdashmain.jsp`
+
+#### Dashboard i18n mapping status
+
+To make dashboard translation work explicit and trackable, the full Phase 4 dashboard list above is the **official i18n mapping scope**.
+
+- Status:
+  - Shared + auth pages (Phases 1–2): localized
+  - Core functional pages (Phase 3): pending/partial by page
+  - Dashboards (Phase 4): mapped and pending implementation by page
+
+For each dashboard page in Phase 4, apply the same localization pattern used in existing localized JSPs:
+- load `ResourceBundle` from session language (`I18nUtil`)
+- replace hardcoded user-facing strings with message keys
+- keep page encoding as UTF-8 and ensure Sinhala bundle keys resolve correctly
