@@ -1,9 +1,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page session="true" %>
+<%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
+<%
+    String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+    ResourceBundle bundle = I18nUtil.getBundle(lang);
+    String htmlLang = I18nUtil.normalizeLanguage(lang);
+%>
 <!DOCTYPE html>
-<html>
+<html lang="<%= htmlLang %>">
 
 <head>
-    <title>Driver Signup | DailyFixer</title>
+    <title><%= bundle.getString("auth.registerDriver.pageTitle") %></title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
     <style>
         body {
@@ -176,8 +183,8 @@
     <div class="register-container">
         <div class="form-container">
             <div class="page-header">
-                <h2>Driver Signup</h2>
-                <p>Join DailyFixer as a Delivery Driver</p>
+                <h2><%= bundle.getString("auth.registerDriver.title") %></h2>
+                <p><%= bundle.getString("auth.registerDriver.subtitle") %></p>
             </div>
 
             <%
@@ -192,115 +199,115 @@
             <form action="${pageContext.request.contextPath}/RegisterDriverServlet" method="post" enctype="multipart/form-data" id="registerForm">
 
                 <!-- Personal Information -->
-                <div class="section-title">Personal Information</div>
+                <div class="section-title"><%= bundle.getString("auth.registerDriver.personalInfo") %></div>
 
                 <div class="form-cols">
                     <div class="form-group">
-                        <label for="first_name">First Name <span class="required-star">*</span></label>
-                        <input type="text" name="first_name" id="first_name" placeholder="First Name" required>
+                        <label for="first_name"><%= bundle.getString("auth.registerUser.firstName") %> <span class="required-star">*</span></label>
+                        <input type="text" name="first_name" id="first_name" placeholder="<%= bundle.getString("auth.registerUser.firstName") %>" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="last_name">Last Name <span class="required-star">*</span></label>
-                        <input type="text" name="last_name" id="last_name" placeholder="Last Name" required>
+                        <label for="last_name"><%= bundle.getString("auth.registerUser.lastName") %> <span class="required-star">*</span></label>
+                        <input type="text" name="last_name" id="last_name" placeholder="<%= bundle.getString("auth.registerUser.lastName") %>" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="username">Username <span class="required-star">*</span></label>
-                    <input type="text" name="username" id="username" placeholder="Username" required>
+                    <label for="username"><%= bundle.getString("auth.registerUser.username") %> <span class="required-star">*</span></label>
+                    <input type="text" name="username" id="username" placeholder="<%= bundle.getString("auth.registerUser.username") %>" required>
                 </div>
 
                 <div class="form-cols">
                     <div class="form-group">
-                        <label for="email">Email <span class="required-star">*</span></label>
-                        <input type="email" name="email" id="email" placeholder="Email" required>
+                        <label for="email"><%= bundle.getString("auth.registerUser.emailAddress") %> <span class="required-star">*</span></label>
+                        <input type="email" name="email" id="email" placeholder="<%= bundle.getString("auth.registerUser.emailAddress") %>" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="phone_number">Phone Number <span class="required-star">*</span></label>
-                        <input type="tel" name="phone_number" id="phone_number" placeholder="Phone Number" required>
+                        <label for="phone_number"><%= bundle.getString("auth.registerUser.phoneNumber") %> <span class="required-star">*</span></label>
+                        <input type="tel" name="phone_number" id="phone_number" placeholder="<%= bundle.getString("auth.registerUser.phoneNumber") %>" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="city">City <span class="required-star">*</span></label>
-                    <input type="text" name="city" id="city" placeholder="City" required>
+                    <label for="city"><%= bundle.getString("auth.registerUser.city") %> <span class="required-star">*</span></label>
+                    <input type="text" name="city" id="city" placeholder="<%= bundle.getString("auth.registerUser.city") %>" required>
                 </div>
 
                 <!-- Identification Documents -->
-                <div class="section-title">Identification Documents</div>
+                <div class="section-title"><%= bundle.getString("auth.registerDriver.identificationDocs") %></div>
 
                 <div class="form-group">
-                    <label for="nic_number">NIC Number <span class="required-star">*</span></label>
+                    <label for="nic_number"><%= bundle.getString("auth.registerDriver.nicNumber") %> <span class="required-star">*</span></label>
                     <input type="text" name="nic_number" id="nic_number"
-                           placeholder="e.g. 200012345678 or 901234567V" required>
+                           placeholder="<%= bundle.getString("auth.registerDriver.nicPlaceholder") %>" required>
                     <div id="nicError" class="error-text"></div>
                 </div>
 
                 <div class="form-cols">
                     <div class="file-upload-group">
-                        <label>NIC Front Photo <span class="required-star">*</span></label>
-                        <div class="file-hint">Upload photo of the front of your NIC (max 5MB)</div>
+                        <label><%= bundle.getString("auth.registerDriver.nicFrontPhoto") %> <span class="required-star">*</span></label>
+                        <div class="file-hint"><%= bundle.getString("auth.registerDriver.nicFrontHint") %></div>
                         <input type="file" name="nic_front" id="nic_front" accept="image/*" required
                                onchange="previewFile(this, 'nicFrontPreview')">
-                        <img id="nicFrontPreview" class="file-preview" alt="NIC Front Preview">
+                        <img id="nicFrontPreview" class="file-preview" alt="<%= bundle.getString("auth.registerDriver.nicFrontPreview") %>">
                     </div>
 
                     <div class="file-upload-group">
-                        <label>NIC Back Photo <span class="required-star">*</span></label>
-                        <div class="file-hint">Upload photo of the back of your NIC (max 5MB)</div>
+                        <label><%= bundle.getString("auth.registerDriver.nicBackPhoto") %> <span class="required-star">*</span></label>
+                        <div class="file-hint"><%= bundle.getString("auth.registerDriver.nicBackHint") %></div>
                         <input type="file" name="nic_back" id="nic_back" accept="image/*" required
                                onchange="previewFile(this, 'nicBackPreview')">
-                        <img id="nicBackPreview" class="file-preview" alt="NIC Back Preview">
+                        <img id="nicBackPreview" class="file-preview" alt="<%= bundle.getString("auth.registerDriver.nicBackPreview") %>">
                     </div>
                 </div>
 
                 <!-- Profile Picture -->
-                <div class="section-title">Profile Picture</div>
+                <div class="section-title"><%= bundle.getString("auth.registerDriver.profilePicture") %></div>
 
                 <div class="file-upload-group">
-                    <label>Driver Photo <span class="required-star">*</span></label>
-                    <div class="file-hint">This will be used as your profile picture on the platform (max 5MB)</div>
+                    <label><%= bundle.getString("auth.registerDriver.driverPhoto") %> <span class="required-star">*</span></label>
+                    <div class="file-hint"><%= bundle.getString("auth.registerDriver.driverPhotoHint") %></div>
                     <input type="file" name="profile_picture" id="profile_picture" accept="image/*" required
                            onchange="previewFile(this, 'profilePreview')">
-                    <img id="profilePreview" class="file-preview" alt="Profile Preview">
+                    <img id="profilePreview" class="file-preview" alt="<%= bundle.getString("auth.registerDriver.profilePreview") %>">
                 </div>
 
                 <!-- Driving License -->
-                <div class="section-title">Driving License</div>
+                <div class="section-title"><%= bundle.getString("auth.registerDriver.drivingLicense") %></div>
 
                 <div class="form-cols">
                     <div class="file-upload-group">
-                        <label>License Front Photo <span class="required-star">*</span></label>
-                        <div class="file-hint">Upload photo of the front of your license (max 5MB)</div>
+                        <label><%= bundle.getString("auth.registerDriver.licenseFrontPhoto") %> <span class="required-star">*</span></label>
+                        <div class="file-hint"><%= bundle.getString("auth.registerDriver.licenseFrontHint") %></div>
                         <input type="file" name="license_front" id="license_front" accept="image/*" required
                                onchange="previewFile(this, 'licenseFrontPreview')">
-                        <img id="licenseFrontPreview" class="file-preview" alt="License Front Preview">
+                        <img id="licenseFrontPreview" class="file-preview" alt="<%= bundle.getString("auth.registerDriver.licenseFrontPreview") %>">
                     </div>
 
                     <div class="file-upload-group">
-                        <label>License Back Photo</label>
-                        <div class="file-hint">Optional — upload if your license has info on the back</div>
+                        <label><%= bundle.getString("auth.registerDriver.licenseBackPhoto") %></label>
+                        <div class="file-hint"><%= bundle.getString("auth.registerDriver.licenseBackHint") %></div>
                         <input type="file" name="license_back" id="license_back" accept="image/*"
                                onchange="previewFile(this, 'licenseBackPreview')">
-                        <img id="licenseBackPreview" class="file-preview" alt="License Back Preview">
+                        <img id="licenseBackPreview" class="file-preview" alt="<%= bundle.getString("auth.registerDriver.licenseBackPreview") %>">
                     </div>
                 </div>
 
                 <!-- Password -->
-                <div class="section-title">Account Security</div>
+                <div class="section-title"><%= bundle.getString("auth.registerDriver.accountSecurity") %></div>
 
                 <div class="form-cols">
                     <div class="form-group">
-                        <label for="password">Password <span class="required-star">*</span></label>
-                        <input type="password" name="password" id="password" placeholder="Min 6 characters" required>
+                        <label for="password"><%= bundle.getString("auth.registerUser.password") %> <span class="required-star">*</span></label>
+                        <input type="password" name="password" id="password" placeholder="<%= bundle.getString("auth.registerDriver.passwordPlaceholder") %>" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="confirmPassword">Confirm Password <span class="required-star">*</span></label>
+                        <label for="confirmPassword"><%= bundle.getString("auth.registerUser.confirmPassword") %> <span class="required-star">*</span></label>
                         <input type="password" name="confirmPassword" id="confirmPassword"
-                               placeholder="Confirm Password" required>
+                               placeholder="<%= bundle.getString("auth.registerUser.confirmPassword") %>" required>
                     </div>
                 </div>
 
@@ -308,17 +315,17 @@
                 <div class="policy-group">
                     <input type="checkbox" name="policy_accepted" id="policy_accepted" required>
                     <label for="policy_accepted">
-                        I have read and agree to the
-                        <a href="${pageContext.request.contextPath}/pages/policies/driver-policies.jsp" target="_blank">Driver Policies</a>
+                        <%= bundle.getString("auth.registerDriver.policyAgreementPrefix") %>
+                        <a href="${pageContext.request.contextPath}/pages/policies/driver-policies.jsp" target="_blank"><%= bundle.getString("auth.registerDriver.driverPolicies") %></a>
                         <span class="required-star">*</span>
                     </label>
                 </div>
 
                 <button type="submit" class="btn-primary" style="width: 100%; margin-top: 24px;">
-                    Submit Driver Application
+                    <%= bundle.getString("auth.registerDriver.submitApplication") %>
                 </button>
             </form>
-            <p class="login-link">Already have an account? <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp">Login here</a></p>
+            <p class="login-link"><%= bundle.getString("auth.registerUser.alreadyHaveAccount") %> <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp"><%= bundle.getString("auth.registerUser.loginHere") %></a></p>
         </div>
     </div>
 
@@ -330,7 +337,7 @@
 
                 // Validate file type
                 if (!file.type.startsWith('image/')) {
-                    alert('Please select an image file (JPG, PNG, etc.)');
+                    alert('<%= bundle.getString("auth.registerDriver.alert.selectImageFile") %>');
                     input.value = '';
                     preview.style.display = 'none';
                     return;
@@ -338,7 +345,7 @@
 
                 // Validate file size (5MB)
                 if (file.size > 5 * 1024 * 1024) {
-                    alert('File size must be less than 5MB');
+                    alert('<%= bundle.getString("auth.registerDriver.alert.fileSize") %>');
                     input.value = '';
                     preview.style.display = 'none';
                     return;
@@ -365,16 +372,16 @@
 
             var errorMsg = "";
 
-            if (!email.includes("@")) errorMsg += "Invalid email format.<br>";
-            if (pw.length < 6) errorMsg += "Password must be at least 6 characters.<br>";
-            if (pw !== cpw) errorMsg += "Passwords do not match.<br>";
-            if (phone.length < 10) errorMsg += "Enter a valid phone number.<br>";
+            if (!email.includes("@")) errorMsg += "<%= bundle.getString("auth.validation.invalidEmailFormatWithBr") %>";
+            if (pw.length < 6) errorMsg += "<%= bundle.getString("auth.validation.passwordMin6WithBr") %>";
+            if (pw !== cpw) errorMsg += "<%= bundle.getString("auth.validation.passwordsDoNotMatchWithBr") %>";
+            if (phone.length < 10) errorMsg += "<%= bundle.getString("auth.validation.enterValidPhoneWithBr") %>";
 
             // NIC validation: 9 digits + V/X or 12 digits
             var nicRegex = /^\d{9}[VvXx]$|^\d{12}$/;
             if (!nicRegex.test(nic)) {
-                errorMsg += "Invalid NIC format. Use 9 digits + V/X or 12 digits.<br>";
-                document.getElementById("nicError").textContent = "Invalid NIC format";
+                errorMsg += "<%= bundle.getString("auth.registerDriver.invalidNicFormatWithBr") %>";
+                document.getElementById("nicError").textContent = "<%= bundle.getString("auth.registerDriver.invalidNicFormat") %>";
             } else {
                 document.getElementById("nicError").textContent = "";
             }
@@ -385,12 +392,12 @@
             var profile  = document.getElementById("profile_picture").files.length;
             var licFront = document.getElementById("license_front").files.length;
 
-            if (nicFront === 0) errorMsg += "NIC front photo is required.<br>";
-            if (nicBack === 0) errorMsg += "NIC back photo is required.<br>";
-            if (profile === 0) errorMsg += "Profile picture is required.<br>";
-            if (licFront === 0) errorMsg += "License front photo is required.<br>";
+            if (nicFront === 0) errorMsg += "<%= bundle.getString("auth.registerDriver.nicFrontRequiredWithBr") %>";
+            if (nicBack === 0) errorMsg += "<%= bundle.getString("auth.registerDriver.nicBackRequiredWithBr") %>";
+            if (profile === 0) errorMsg += "<%= bundle.getString("auth.registerDriver.profileRequiredWithBr") %>";
+            if (licFront === 0) errorMsg += "<%= bundle.getString("auth.registerDriver.licenseFrontRequiredWithBr") %>";
 
-            if (!policy) errorMsg += "You must accept the driver policies.<br>";
+            if (!policy) errorMsg += "<%= bundle.getString("auth.registerDriver.mustAcceptPoliciesWithBr") %>";
 
             var errorDiv = document.getElementById("error");
             errorDiv.innerHTML = errorMsg;

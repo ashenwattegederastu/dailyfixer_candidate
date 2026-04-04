@@ -1,12 +1,19 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page import="java.util.*" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page session="true" %>
+<%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
+<%
+    String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+    ResourceBundle bundle = I18nUtil.getBundle(lang);
+    String htmlLang = I18nUtil.normalizeLanguage(lang);
+%>
 <!DOCTYPE html>
-<html>
+<html lang="<%= htmlLang %>">
 
 <head>
     <meta charset="UTF-8">
-    <title>Register Store - DailyFixer</title>
+    <title><%= bundle.getString("auth.registerStore.pageTitle") %></title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
     <style>
         body {
@@ -178,8 +185,8 @@
 
     <div class="register-wrapper">
         <div class="page-header">
-            <h2>Register Store</h2>
-            <p>Join DailyFixer as a Store Partner</p>
+            <h2><%= bundle.getString("auth.registerStore.title") %></h2>
+            <p><%= bundle.getString("auth.registerStore.subtitle") %></p>
         </div>
 
         <div class="register-card">
@@ -196,45 +203,45 @@
                     <input type="hidden" name="longitude" id="longitude">
                     <input type="hidden" name="storeAddress" id="storeAddress">
 
-                    <div class="section-label">Owner Details</div>
+                    <div class="section-label"><%= bundle.getString("auth.registerStore.ownerDetails") %></div>
 
                     <div class="form-cols">
                         <div class="form-group">
-                            <label>First name</label>
+                            <label><%= bundle.getString("auth.registerStore.firstName") %></label>
                             <input type="text" name="firstName" id="firstName" required>
                         </div>
                         <div class="form-group">
-                            <label>Last name</label>
+                            <label><%= bundle.getString("auth.registerStore.lastName") %></label>
                             <input type="text" name="lastName" id="lastName" required>
                         </div>
                     </div>
 
                     <div class="form-cols">
                         <div class="form-group">
-                            <label>Username</label>
+                            <label><%= bundle.getString("auth.registerStore.username") %></label>
                             <input type="text" name="username" id="username" required>
                         </div>
                         <div class="form-group">
-                            <label>Password</label>
+                            <label><%= bundle.getString("auth.registerStore.password") %></label>
                             <input type="password" name="password" id="password" required>
                         </div>
                     </div>
 
                     <div class="form-cols">
                         <div class="form-group">
-                            <label>Email</label>
+                            <label><%= bundle.getString("auth.registerStore.email") %></label>
                             <input type="email" name="email" id="email" required>
                         </div>
                         <div class="form-group">
-                            <label>Phone number</label>
+                            <label><%= bundle.getString("auth.registerStore.phoneNumber") %></label>
                             <input type="text" name="phone" id="phone">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Your city (optional)</label>
+                        <label><%= bundle.getString("auth.registerStore.yourCityOptional") %></label>
                         <select name="city">
-                            <option value="">-- Select city --</option>
+                            <option value=""><%= bundle.getString("auth.registerStore.selectCity") %></option>
                             <% String[] cities={"Colombo","Kandy","Galle","Jaffna","Kurunegala","Matara","Trincomalee","Batticaloa","Negombo","Anuradhapura","Polonnaruwa","Badulla","Ratnapura","Puttalam","Kilinochchi","Mannar","Hambantota"};
                                for (String c : cities) { %>
                                 <option value="<%=c%>"><%=c%></option>
@@ -242,67 +249,67 @@
                         </select>
                     </div>
 
-                    <div class="section-label">Store Details</div>
+                    <div class="section-label"><%= bundle.getString("auth.registerStore.storeDetails") %></div>
 
                     <div class="form-group">
-                        <label>Store name</label>
+                        <label><%= bundle.getString("auth.registerStore.storeName") %></label>
                         <input type="text" name="storeName" id="storeName" required>
                     </div>
 
                     <div class="form-cols">
                         <div class="form-group">
-                            <label>Store city</label>
+                            <label><%= bundle.getString("auth.registerStore.storeCity") %></label>
                             <select name="storeCity" id="storeCity" required>
-                                <option value="">-- Select city --</option>
+                                <option value=""><%= bundle.getString("auth.registerStore.selectCity") %></option>
                                 <% for (String c : cities) { %>
                                     <option value="<%=c%>"><%=c%></option>
                                 <% } %>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Store type</label>
+                            <label><%= bundle.getString("auth.registerStore.storeType") %></label>
                             <select name="storeType" id="storeType" required>
-                                <option value="">-- Select type --</option>
-                                <option value="electronics">Electronics</option>
-                                <option value="hardware">Hardware</option>
-                                <option value="vehicle repair">Vehicle Repair</option>
-                                <option value="other">Other</option>
+                                <option value=""><%= bundle.getString("auth.registerStore.selectType") %></option>
+                                <option value="electronics"><%= bundle.getString("auth.registerStore.type.electronics") %></option>
+                                <option value="hardware"><%= bundle.getString("auth.registerStore.type.hardware") %></option>
+                                <option value="vehicle repair"><%= bundle.getString("auth.registerStore.type.vehicleRepair") %></option>
+                                <option value="other"><%= bundle.getString("auth.registerStore.type.other") %></option>
                             </select>
                         </div>
                     </div>
 
-                    <button type="submit" class="login-btn" id="submitBtn" style="width:100%;margin-top:8px;">Register Store</button>
+                    <button type="submit" class="login-btn" id="submitBtn" style="width:100%;margin-top:8px;"><%= bundle.getString("auth.registerStore.registerButton") %></button>
                 </form>
             </div>
 
             <!-- Right: Map -->
             <div class="register-right form-container">
-                <h3 style="color:var(--primary);margin-bottom:6px;">📍 Store Location</h3>
-                <p style="font-size:0.85rem;color:var(--muted-foreground);">Set your store location using the search box or by clicking on the map.</p>
+                <h3 style="color:var(--primary);margin-bottom:6px;"><%= bundle.getString("auth.registerStore.storeLocationTitle") %></h3>
+                <p style="font-size:0.85rem;color:var(--muted-foreground);"><%= bundle.getString("auth.registerStore.storeLocationSubtitle") %></p>
 
                 <div class="form-group" style="margin-top:12px;margin-bottom:0;">
-                    <label>Search for location:</label>
-                    <input type="text" id="map-search-input" placeholder="Type address or place name...">
+                    <label><%= bundle.getString("auth.registerStore.searchForLocation") %></label>
+                    <input type="text" id="map-search-input" placeholder="<%= bundle.getString("auth.registerStore.searchPlaceholder") %>">
                 </div>
 
                 <div id="store-map"></div>
 
                 <div class="map-instructions">
-                    <strong>💡 Tips:</strong><br>
-                    • Type an address in the search box above, OR<br>
-                    • Click directly on the map to pin your store location
+                    <strong><%= bundle.getString("auth.registerStore.tipsTitle") %></strong><br>
+                    <%= bundle.getString("auth.registerStore.tip1") %><br>
+                    <%= bundle.getString("auth.registerStore.tip2") %>
                 </div>
 
                 <div id="locationInfo" class="location-info">
-                    Location not set. Please select your store location on the map.
+                    <%= bundle.getString("auth.registerStore.locationNotSet") %>
                 </div>
 
                 <hr style="margin-top:20px;border-color:var(--border);">
 
                 <div class="login-link">
-                    <p>Already have an account? <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp">Log in</a></p>
-                    <p style="margin-top:6px;">Or go back <a href="${pageContext.request.contextPath}/index.jsp">Home</a></p>
-                    <p style="font-size:0.75rem;color:var(--muted-foreground);margin-top:10px;">By registering you agree to our terms and that information you provide is accurate.</p>
+                    <p><%= bundle.getString("auth.registerStore.alreadyHaveAccount") %> <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp"><%= bundle.getString("auth.registerStore.logIn") %></a></p>
+                    <p style="margin-top:6px;"><%= bundle.getString("auth.registerStore.orGoBack") %> <a href="${pageContext.request.contextPath}/index.jsp"><%= bundle.getString("auth.registerStore.home") %></a></p>
+                    <p style="font-size:0.75rem;color:var(--muted-foreground);margin-top:10px;"><%= bundle.getString("auth.registerStore.termsNote") %></p>
                 </div>
             </div>
         </div>
@@ -376,7 +383,7 @@
 
                             updateLocationInfo(place.formatted_address || place.name, lat, lng);
                         } else {
-                            showLocationError('Could not find that location. Please try again.');
+                            showLocationError('<%= bundle.getString("auth.registerStore.couldNotFindLocation") %>');
                         }
                     });
                 }
@@ -402,7 +409,7 @@
                         if (status === 'OK' && results[0]) {
                             updateLocationInfo(results[0].formatted_address, latLng.lat(), latLng.lng());
                         } else {
-                            updateLocationInfo('Location selected', latLng.lat(), latLng.lng());
+                            updateLocationInfo('<%= bundle.getString("auth.registerStore.locationSelected") %>', latLng.lat(), latLng.lng());
                         }
                     });
                 }
@@ -411,9 +418,9 @@
                 function updateLocationInfo(address, lat, lng) {
                     var infoDiv = document.getElementById('locationInfo');
                     infoDiv.className = 'location-info success';
-                    infoDiv.innerHTML = '<strong>✓ Location Set:</strong><br>' +
+                    infoDiv.innerHTML = '<strong><%= bundle.getString("auth.registerStore.locationSet") %></strong><br>' +
                         '<span style="font-size:12px;">' + address + '</span><br>' +
-                        '<span class="location-coords">Lat: ' + lat.toFixed(6) + ', Lng: ' + lng.toFixed(6) + '</span>';
+                        '<span class="location-coords"><%= bundle.getString("auth.registerStore.lat") %>: ' + lat.toFixed(6) + ', <%= bundle.getString("auth.registerStore.lng") %>: ' + lng.toFixed(6) + '</span>';
 
                     // Auto-fill the hidden store address field
                     document.getElementById('storeAddress').value = address;
@@ -423,7 +430,7 @@
                 function showLocationError(message) {
                     var infoDiv = document.getElementById('locationInfo');
                     infoDiv.className = 'location-info error';
-                    infoDiv.innerHTML = '<strong>⚠ Error:</strong> ' + message;
+                    infoDiv.innerHTML = '<strong><%= bundle.getString("auth.registerStore.error") %></strong> ' + message;
                 }
 
                 // Client-side validation
@@ -437,12 +444,12 @@
                     var sc = document.getElementById('storeCity').value;
 
                     var err = [];
-                    if (!u) err.push("Username required");
-                    if (!em) err.push("Email required");
-                    if (!pw || pw.length < 6) err.push("Password required (min 6 chars)");
-                    if (!sn) err.push("Store name required");
-                    if (!lat || !lng || lat === '' || lng === '') err.push("Please select a store location on the map.");
-                    if (!sc) err.push("Store city required");
+                    if (!u) err.push("<%= bundle.getString("auth.validation.usernameRequired") %>");
+                    if (!em) err.push("<%= bundle.getString("auth.validation.emailRequired") %>");
+                    if (!pw || pw.length < 6) err.push("<%= bundle.getString("auth.registerStore.passwordRequiredMin6") %>");
+                    if (!sn) err.push("<%= bundle.getString("auth.registerStore.storeNameRequired") %>");
+                    if (!lat || !lng || lat === '' || lng === '') err.push("<%= bundle.getString("auth.registerStore.selectStoreLocation") %>");
+                    if (!sc) err.push("<%= bundle.getString("auth.registerStore.storeCityRequired") %>");
 
                     if (err.length) {
                         alert(err.join("\n"));
@@ -461,7 +468,7 @@
 
                     var submitBtn = document.getElementById('submitBtn');
                     submitBtn.disabled = true;
-                    submitBtn.textContent = 'Registering...';
+                    submitBtn.textContent = '<%= bundle.getString("auth.registerStore.registering") %>';
 
                     // Submit the form - validation already checked that location is set
                     document.getElementById('registerForm').submit();
