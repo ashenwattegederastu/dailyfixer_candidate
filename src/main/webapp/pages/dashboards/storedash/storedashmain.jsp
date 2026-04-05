@@ -397,6 +397,7 @@ window.storeDashData = {
     mostSelling: <%= mostSellingJson.toString() %>
 };
 </script>
+<script src="${pageContext.request.contextPath}/assets/js/storedash-charts.js"></script>
 </body>
 </html>
 

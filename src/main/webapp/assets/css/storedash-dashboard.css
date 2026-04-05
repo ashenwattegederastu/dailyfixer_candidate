@@ -310,6 +310,12 @@ a.low-stock-item {
   height: 240px;
 }
 
+.chart-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .cards-grid {
