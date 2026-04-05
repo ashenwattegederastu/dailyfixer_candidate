@@ -2,7 +2,9 @@ package com.dailyfixer.servlet.user;
 
 import com.dailyfixer.dao.BookingDAO;
 import com.dailyfixer.dao.BookingRatingDAO;
+import com.dailyfixer.dao.RescheduleRequestDAO;
 import com.dailyfixer.model.Booking;
+import com.dailyfixer.model.RescheduleRequest;
 import com.dailyfixer.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,8 +57,9 @@ public class UserBookingsServlet extends HttpServlet {
 
             switch (pathInfo) {
                 case "/active":
-                    bookings = bookingDAO.getBookingsByUserAndStatuses(userId, "REQUESTED", "ACCEPTED",
-                            "TECHNICIAN_COMPLETED");
+                    bookings = bookingDAO.getBookingsByUserAndStatuses(userId,
+                            "REQUESTED", "ACCEPTED", "IN_PROGRESS", "TECHNICIAN_COMPLETED",
+                            "RESCHEDULE_PENDING", "NO_SHOW");
 
                     // For recurring contracts, show only the next upcoming booking per contract.
                     // Non-recurring bookings are shown as-is.
@@ -76,7 +80,18 @@ public class UserBookingsServlet extends HttpServlet {
                     displayed.addAll(nextRecurring.values());
                     displayed.sort((a, z) -> z.getBookingDate().compareTo(a.getBookingDate()));
 
+                    // For RESCHEDULE_PENDING bookings, load the pending reschedule request
+                    RescheduleRequestDAO rescheduleDAO = new RescheduleRequestDAO();
+                    Map<Integer, RescheduleRequest> pendingReschedules = new HashMap<>();
+                    for (Booking b : displayed) {
+                        if ("RESCHEDULE_PENDING".equals(b.getStatus())) {
+                            RescheduleRequest rr = rescheduleDAO.getPendingByBookingId(b.getBookingId());
+                            if (rr != null) pendingReschedules.put(b.getBookingId(), rr);
+                        }
+                    }
+
                     request.setAttribute("activeBookings", displayed);
+                    request.setAttribute("pendingReschedules", pendingReschedules);
                     targetJsp = "/pages/dashboards/userdash/activeBookings.jsp";
                     break;
                 case "/completed":
@@ -95,7 +110,7 @@ public class UserBookingsServlet extends HttpServlet {
                     targetJsp = "/pages/dashboards/userdash/completedBookings.jsp";
                     break;
                 case "/cancelled":
-                    bookings = bookingDAO.getBookingsByUserAndStatuses(userId, "REJECTED", "CANCELLED");
+                    bookings = bookingDAO.getBookingsByUserAndStatuses(userId, "REJECTED", "CANCELLED", "AUTO_REJECTED");
                     request.setAttribute("cancelledBookings", bookings);
                     targetJsp = "/pages/dashboards/userdash/cancelledBookings.jsp";
                     break;

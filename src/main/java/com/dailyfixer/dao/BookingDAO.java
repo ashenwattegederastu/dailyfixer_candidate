@@ -4,8 +4,11 @@ import com.dailyfixer.model.Booking;
 import com.dailyfixer.util.DBConnection;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BookingDAO {
 
@@ -224,6 +227,83 @@ public class BookingDAO {
             }
         }
         return 0;
+    }
+
+    /**
+     * Count active (non-terminal, non-cancelled/rejected) bookings for a technician on a specific date.
+     * Used to enforce daily booking limits before accepting a new request.
+     */
+    public int countActiveBookingsForDate(int technicianId, Date date) throws Exception {
+        String sql = "SELECT COUNT(*) FROM bookings " +
+                     "WHERE technician_id = ? AND booking_date = ? " +
+                     "AND status IN ('ACCEPTED','IN_PROGRESS','TECHNICIAN_COMPLETED','FULLY_COMPLETED')";
+        try (Connection con = DBConnection.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, technicianId);
+            ps.setDate(2, date);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Returns a map of booking_date → active booking count for a technician within
+     * the given date range (inclusive). A single query instead of N per-day queries,
+     * used to find the nearest day that hasn't reached the daily limit.
+     */
+    public Map<LocalDate, Integer> getBookingCountsByDateRange(int technicianId, LocalDate start, LocalDate end) throws Exception {
+        String sql = "SELECT booking_date, COUNT(*) AS cnt FROM bookings " +
+                     "WHERE technician_id = ? AND booking_date BETWEEN ? AND ? " +
+                     "AND status IN ('ACCEPTED','IN_PROGRESS','TECHNICIAN_COMPLETED','FULLY_COMPLETED') " +
+                     "GROUP BY booking_date";
+        Map<LocalDate, Integer> counts = new HashMap<>();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, technicianId);
+            ps.setDate(2, Date.valueOf(start));
+            ps.setDate(3, Date.valueOf(end));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    counts.put(rs.getDate("booking_date").toLocalDate(), rs.getInt("cnt"));
+                }
+            }
+        }
+        return counts;
+    }
+
+    /** Update just the booking_date and booking_time fields (used by reschedule accept). */
+    public void updateBookingDateTime(int bookingId, Date newDate, Time newTime) throws Exception {
+        String sql = "UPDATE bookings SET booking_date = ?, booking_time = ? WHERE booking_id = ?";
+        try (Connection con = DBConnection.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDate(1, newDate);
+            ps.setTime(2, newTime);
+            ps.setInt(3, bookingId);
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Returns REQUESTED bookings that have been waiting for technician response
+     * longer than the given hours, so they can be auto-rejected.
+     * Returns [booking_id, user_id] pairs.
+     */
+    public List<int[]> getAutoRejectCandidates(int olderThanHours) throws Exception {
+        String sql = "SELECT booking_id, user_id FROM bookings " +
+                     "WHERE status = 'REQUESTED' AND created_at < DATE_SUB(NOW(), INTERVAL ? HOUR)";
+        List<int[]> results = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, olderThanHours);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    results.add(new int[]{rs.getInt("booking_id"), rs.getInt("user_id")});
+                }
+            }
+        }
+        return results;
     }
 
     private Booking extractBookingFromResultSet(ResultSet rs) throws SQLException {

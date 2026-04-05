@@ -1,8 +1,10 @@
 package com.dailyfixer.servlet.booking;
 
 import com.dailyfixer.dao.BookingDAO;
+import com.dailyfixer.dao.BookingNotificationDAO;
 import com.dailyfixer.dao.ChatDAO;
 import com.dailyfixer.dao.RecurringContractDAO;
+import com.dailyfixer.dao.TechnicianDailyLimitDAO;
 import com.dailyfixer.model.Booking;
 import com.dailyfixer.model.Chat;
 import com.dailyfixer.model.User;
@@ -33,7 +35,18 @@ public class AcceptBookingServlet extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Unauthorized");
                 return;
             }
-            
+
+            // Enforce daily booking limit
+            TechnicianDailyLimitDAO limitDAO = new TechnicianDailyLimitDAO();
+            int maxPerDay = limitDAO.getMaxBookingsPerDay(currentUser.getUserId());
+            int currentCount = bookingDAO.countActiveBookingsForDate(
+                    currentUser.getUserId(), booking.getBookingDate());
+            if (currentCount >= maxPerDay) {
+                response.sendRedirect(request.getContextPath()
+                        + "/bookings/requests?limitReached=true&date=" + booking.getBookingDate());
+                return;
+            }
+
             // Update booking status
             bookingDAO.updateBookingStatus(bookingId, "ACCEPTED");
 
@@ -56,6 +69,12 @@ public class AcceptBookingServlet extends HttpServlet {
                 chat.setTechnicianId(booking.getTechnicianId());
                 chatDAO.createChat(chat);
             }
+
+            // Notify the client
+            BookingNotificationDAO notifDAO = new BookingNotificationDAO();
+            notifDAO.createNotification(booking.getUserId(), bookingId,
+                    "Your booking #" + bookingId + " for \"" + booking.getServiceName()
+                            + "\" on " + booking.getBookingDate() + " has been accepted by the technician.");
             
             response.sendRedirect(request.getContextPath() + "/bookings/requests?accepted=true");
             

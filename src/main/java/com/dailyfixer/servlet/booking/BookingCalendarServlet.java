@@ -1,14 +1,19 @@
 package com.dailyfixer.servlet.booking;
 
 import com.dailyfixer.dao.BookingDAO;
+import com.dailyfixer.dao.RescheduleRequestDAO;
 import com.dailyfixer.model.Booking;
+import com.dailyfixer.model.RescheduleRequest;
 import com.dailyfixer.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/bookings/calendar")
 public class BookingCalendarServlet extends HttpServlet {
@@ -23,13 +28,25 @@ public class BookingCalendarServlet extends HttpServlet {
             }
             
             BookingDAO bookingDAO = new BookingDAO();
-            List<Booking> acceptedBookings = bookingDAO.getBookingsByTechnicianAndStatus(currentUser.getUserId(), "ACCEPTED");
-            List<Booking> completedBookings = bookingDAO.getBookingsByTechnicianAndStatus(currentUser.getUserId(), "TECHNICIAN_COMPLETED");
-            
-            // Combine both lists for calendar display
-            acceptedBookings.addAll(completedBookings);
-            
-            request.setAttribute("bookings", acceptedBookings);
+
+            // Load all active statuses the technician needs to see
+            List<Booking> bookings = new ArrayList<>();
+            for (String status : new String[]{"ACCEPTED", "IN_PROGRESS", "TECHNICIAN_COMPLETED", "RESCHEDULE_PENDING", "NO_SHOW"}) {
+                bookings.addAll(bookingDAO.getBookingsByTechnicianAndStatus(currentUser.getUserId(), status));
+            }
+
+            // For RESCHEDULE_PENDING bookings, load the pending reschedule request so the JSP can show it
+            RescheduleRequestDAO rescheduleDAO = new RescheduleRequestDAO();
+            Map<Integer, RescheduleRequest> pendingReschedules = new HashMap<>();
+            for (Booking b : bookings) {
+                if ("RESCHEDULE_PENDING".equals(b.getStatus())) {
+                    RescheduleRequest rr = rescheduleDAO.getPendingByBookingId(b.getBookingId());
+                    if (rr != null) pendingReschedules.put(b.getBookingId(), rr);
+                }
+            }
+
+            request.setAttribute("bookings", bookings);
+            request.setAttribute("pendingReschedules", pendingReschedules);
             request.getRequestDispatcher("/pages/dashboards/techniciandash/booking-calendar.jsp").forward(request, response);
             
         } catch (Exception e) {

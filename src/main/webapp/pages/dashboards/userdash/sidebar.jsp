@@ -31,10 +31,11 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#"
+                            <a href="${pageContext.request.contextPath}/user/notifications"
                                 id="nav-user-notifications">
                                 <i class="ph ph-bell"></i>
                                 Notifications
+                                <span id="notif-badge" style="display:none;background:var(--destructive);color:var(--destructive-foreground);font-size:0.68rem;font-weight:700;padding:1px 6px;border-radius:9999px;margin-left:4px;vertical-align:middle;"></span>
                             </a>
                         </li>
 
@@ -148,6 +149,22 @@
                         document.getElementById('nav-user-bookings-cancelled')?.classList.add('active');
                     } else if (currentPath.includes('/user/orders')) {
                         document.getElementById('nav-user-purchases')?.classList.add('active');
+                    } else if (currentPath.includes('/user/notifications')) {
+                        document.getElementById('nav-user-notifications')?.classList.add('active');
                     }
                 });
+
+                    // Show unread notification count badge
+                    fetch('${pageContext.request.contextPath}/bookings/notifications')
+                        .then(function(r) { return r.ok ? r.json() : null; })
+                        .then(function(data) {
+                            if (data && data.unread > 0) {
+                                var badge = document.getElementById('notif-badge');
+                                if (badge) {
+                                    badge.textContent = data.unread;
+                                    badge.style.display = 'inline-block';
+                                }
+                            }
+                        })
+                        .catch(function() {});
             </script>

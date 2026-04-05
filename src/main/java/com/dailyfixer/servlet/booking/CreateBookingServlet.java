@@ -4,6 +4,7 @@ import com.dailyfixer.dao.BookingDAO;
 import com.dailyfixer.dao.RecurringContractDAO;
 import com.dailyfixer.dao.ServiceDAO;
 import com.dailyfixer.dao.TechnicianAvailabilityDAO;
+import com.dailyfixer.dao.TechnicianDailyLimitDAO;
 import com.dailyfixer.model.Booking;
 import com.dailyfixer.model.RecurringContract;
 import com.dailyfixer.model.Service;
@@ -20,6 +21,7 @@ import java.sql.Time;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Map;
 
 @WebServlet("/bookings/create")
 public class CreateBookingServlet extends HttpServlet {
@@ -45,9 +47,17 @@ public class CreateBookingServlet extends HttpServlet {
             TechnicianAvailabilityDAO availabilityDAO = new TechnicianAvailabilityDAO();
             TechnicianAvailability availability = availabilityDAO.getAvailabilityByTechnicianId(service.getTechnicianId());
             
+            // Find the nearest day with open capacity to hint the user
+            BookingDAO bookingDAO = new BookingDAO();
+            TechnicianDailyLimitDAO limitDAO = new TechnicianDailyLimitDAO();
+            LocalDate nearest = findNearestAvailableDate(service.getTechnicianId(), availability, bookingDAO, limitDAO);
+
             request.setAttribute("service", service);
             request.setAttribute("availability", availability);
             request.setAttribute("technicianId", service.getTechnicianId());
+            if (nearest != null) {
+                request.setAttribute("nearestAvailableDate", nearest.toString());
+            }
             request.getRequestDispatcher("/pages/bookings/create-booking.jsp").forward(request, response);
 
         } catch (Exception e) {
@@ -198,5 +208,44 @@ public class CreateBookingServlet extends HttpServlet {
         LocalTime endTime = availability.getEndTime().toLocalTime();
         
         return !time.isBefore(startTime) && !time.isAfter(endTime);
+    }
+
+    /**
+     * Scans the next 60 days and returns the first date where the technician works
+     * and has not yet reached their daily booking limit. Returns null if no such
+     * day is found within the window (e.g. technician has no availability set).
+     */
+    private LocalDate findNearestAvailableDate(int technicianId, TechnicianAvailability availability,
+            BookingDAO bookingDAO, TechnicianDailyLimitDAO limitDAO) {
+        try {
+            int maxPerDay = limitDAO.getMaxBookingsPerDay(technicianId);
+            LocalDate start = LocalDate.now().plusDays(1);
+            LocalDate end = start.plusDays(59);
+            Map<LocalDate, Integer> counts = bookingDAO.getBookingCountsByDateRange(technicianId, start, end);
+            for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+                if (availability != null && !isTechnicianWorkingDay(availability, d.getDayOfWeek())) {
+                    continue;
+                }
+                if (counts.getOrDefault(d, 0) < maxPerDay) {
+                    return d;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private boolean isTechnicianWorkingDay(TechnicianAvailability availability, DayOfWeek day) {
+        switch (day) {
+            case MONDAY:    return availability.isMonday();
+            case TUESDAY:   return availability.isTuesday();
+            case WEDNESDAY: return availability.isWednesday();
+            case THURSDAY:  return availability.isThursday();
+            case FRIDAY:    return availability.isFriday();
+            case SATURDAY:  return availability.isSaturday();
+            case SUNDAY:    return availability.isSunday();
+            default:        return false;
+        }
     }
 }

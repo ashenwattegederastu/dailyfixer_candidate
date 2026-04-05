@@ -149,6 +149,21 @@
                     color: var(--primary-foreground);
                 }
 
+                .status-badge.in-progress {
+                    background: oklch(0.55 0.15 250);
+                    color: white;
+                }
+
+                .status-badge.reschedule-pending {
+                    background: oklch(0.75 0.17 75);
+                    color: white;
+                }
+
+                .status-badge.no-show {
+                    background: var(--destructive);
+                    color: var(--destructive-foreground);
+                }
+
                 .info-block {
                     background: var(--muted);
                     padding: 1rem;
@@ -349,6 +364,21 @@
                     color: var(--primary-foreground);
                 }
 
+                .cal-booking-pill.in-progress {
+                    background: oklch(0.55 0.15 250);
+                    color: white;
+                }
+
+                .cal-booking-pill.reschedule-pending {
+                    background: oklch(0.75 0.17 75);
+                    color: white;
+                }
+
+                .cal-booking-pill.no-show {
+                    background: var(--destructive);
+                    color: var(--destructive-foreground);
+                }
+
                 /* ── Modals ────────────────────────────────────── */
                 .modal-overlay {
                     display: none;
@@ -415,6 +445,17 @@
                         font-size: 1rem;
                         min-width: auto;
                     }
+                }
+
+                .btn-start-job {
+                    background: oklch(0.55 0.15 250);
+                    color: white;
+                }
+
+                .btn-reschedule-req {
+                    background: var(--secondary);
+                    color: var(--secondary-foreground);
+                    border: 1px solid var(--border);
                 }
 
                 /* ── Recurring Contract Group (list view) ─────── */
@@ -500,8 +541,23 @@
                 <c:if test="${param.completed}">
                     <div class="alert-banner success">Booking marked as completed!</div>
                 </c:if>
+                <c:if test="${param.started}">
+                    <div class="alert-banner success">Job started — booking is now In Progress.</div>
+                </c:if>
                 <c:if test="${param.cancelled}">
                     <div class="alert-banner warning">Booking cancelled successfully.</div>
+                </c:if>
+                <c:if test="${param.rescheduleRequested}">
+                    <div class="alert-banner success">Reschedule request submitted. The client will be notified.</div>
+                </c:if>
+                <c:if test="${param.rescheduleAccepted}">
+                    <div class="alert-banner success">Reschedule accepted. Booking has been updated to the new date and time.</div>
+                </c:if>
+                <c:if test="${param.rescheduleRejected}">
+                    <div class="alert-banner warning">Reschedule request rejected. The booking continues at its original time.</div>
+                </c:if>
+                <c:if test="${param.limitReached}">
+                    <div class="alert-banner warning">&#9888; Daily booking limit reached for <strong>${param.date}</strong>. You cannot accept more bookings on that day.</div>
                 </c:if>
 
                 <!-- Empty state -->
@@ -547,6 +603,37 @@
                             <button type="submit" class="btn-cancel-booking"
                                 style="flex: 1; border-radius: var(--radius-md);">Cancel Booking</button>
                             <button type="button" onclick="closeCancelModal()"
+                                style="flex: 1; background: var(--secondary); color: var(--secondary-foreground); padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-family: var(--font-sans);">Close</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ════════════ RESCHEDULE REQUEST MODAL ════════════ -->
+            <div id="rescheduleModal" class="modal-overlay">
+                <div class="modal-content">
+                    <h3>Request Reschedule</h3>
+                    <form id="rescheduleForm" method="post" action="${pageContext.request.contextPath}/bookings/reschedule/request">
+                        <input type="hidden" name="bookingId" id="rescheduleBookingId">
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">New Date *</label>
+                            <input type="date" name="newDate" id="rescheduleNewDate" required
+                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--input); color: var(--foreground); font-family: var(--font-sans);">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">New Time *</label>
+                            <input type="time" name="newTime" id="rescheduleNewTime" required
+                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--input); color: var(--foreground); font-family: var(--font-sans);">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Reason (optional)</label>
+                            <textarea name="reason" rows="3" placeholder="Provide a reason for rescheduling..."
+                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--input); color: var(--foreground); resize: vertical; font-family: var(--font-sans);"></textarea>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button type="submit" class="btn-complete"
+                                style="flex: 1; border-radius: var(--radius-md); padding: 0.75rem; border: none; cursor: pointer;">Submit Request</button>
+                            <button type="button" onclick="closeRescheduleModal()"
                                 style="flex: 1; background: var(--secondary); color: var(--secondary-foreground); padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-family: var(--font-sans);">Close</button>
                         </div>
                     </form>
@@ -606,6 +693,20 @@
                 ];
 
                 var contextPath = "${pageContext.request.contextPath}";
+                var currentUserId = ${sessionScope.currentUser.userId};
+
+                /* ── Pending reschedule requests (keyed by bookingId) ── */
+                var pendingReschedules = {};
+                <c:forEach var="entry" items="${pendingReschedules}">
+                pendingReschedules[${entry.key}] = {
+                    rescheduleId: ${entry.value.rescheduleId},
+                    newDate: "${entry.value.newDate}",
+                    newTime: "${entry.value.newTime}",
+                    reason: "${entry.value.reason}",
+                    requestedBy: ${entry.value.requestedBy},
+                    requesterName: "${entry.value.requesterName}"
+                };
+                </c:forEach>
 
                 /* ── View Toggle ───────────────────────────────── */
                 function switchView(view) {
@@ -698,7 +799,15 @@
                         var dayBookings = bookings.filter(function (b) { return b.date === dateStr; });
                         dayBookings.forEach(function (b) {
                             var pill = document.createElement('div');
-                            pill.className = 'cal-booking-pill ' + (b.status === 'ACCEPTED' ? 'accepted' : 'awaiting');
+                            var pillClass = 'cal-booking-pill ';
+                            switch (b.status) {
+                                case 'ACCEPTED': pillClass += 'accepted'; break;
+                                case 'IN_PROGRESS': pillClass += 'in-progress'; break;
+                                case 'RESCHEDULE_PENDING': pillClass += 'reschedule-pending'; break;
+                                case 'NO_SHOW': pillClass += 'no-show'; break;
+                                default: pillClass += 'awaiting';
+                            }
+                            pill.className = pillClass;
                             var pillLabel = formatTime(b.time) + ' ' + b.service;
                             if (b.recurring) pillLabel = '\u21BB ' + pillLabel + ' (' + b.recurringSeq + '/12)';
                             pill.textContent = pillLabel;
@@ -752,10 +861,21 @@
 
                     /* Status badge */
                     var badgeEl = document.getElementById('detailStatusBadge');
-                    if (b.status === 'ACCEPTED') {
-                        badgeEl.innerHTML = '<span class="status-badge accepted">ACCEPTED</span>';
-                    } else {
-                        badgeEl.innerHTML = '<span class="status-badge awaiting">AWAITING USER CONFIRM</span>';
+                    switch (b.status) {
+                        case 'ACCEPTED':
+                            badgeEl.innerHTML = '<span class="status-badge accepted">ACCEPTED</span>';
+                            break;
+                        case 'IN_PROGRESS':
+                            badgeEl.innerHTML = '<span class="status-badge in-progress">IN PROGRESS</span>';
+                            break;
+                        case 'RESCHEDULE_PENDING':
+                            badgeEl.innerHTML = '<span class="status-badge reschedule-pending">RESCHEDULE PENDING</span>';
+                            break;
+                        case 'NO_SHOW':
+                            badgeEl.innerHTML = '<span class="status-badge no-show">NO SHOW</span>';
+                            break;
+                        default:
+                            badgeEl.innerHTML = '<span class="status-badge awaiting">' + b.status + '</span>';
                     }
 
                     /* Map link */
@@ -778,6 +898,27 @@
                     actions.appendChild(chatBtn);
 
                     if (b.status === 'ACCEPTED') {
+                        var startForm = document.createElement('form');
+                        startForm.method = 'post';
+                        startForm.action = contextPath + '/bookings/complete';
+                        startForm.style.flex = '1';
+                        startForm.style.minWidth = '150px';
+                        startForm.innerHTML =
+                            '<input type="hidden" name="bookingId" value="' + b.id + '">' +
+                            '<input type="hidden" name="completionType" value="start">' +
+                            '<button type="submit" class="btn-start-job" style="width:100%;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">Mark In Progress</button>';
+                        actions.appendChild(startForm);
+
+                        var reschedBtn = document.createElement('button');
+                        reschedBtn.className = 'btn-reschedule-req';
+                        reschedBtn.textContent = 'Request Reschedule';
+                        reschedBtn.style.cssText = 'flex:1;min-width:150px;padding:0.75rem;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);';
+                        reschedBtn.onclick = function () {
+                            closeDetailModal();
+                            openRescheduleModal(b.id);
+                        };
+                        actions.appendChild(reschedBtn);
+                    } else if (b.status === 'IN_PROGRESS') {
                         var completeForm = document.createElement('form');
                         completeForm.method = 'post';
                         completeForm.action = contextPath + '/bookings/complete';
@@ -788,16 +929,51 @@
                             '<input type="hidden" name="completionType" value="technician">' +
                             '<button type="submit" class="btn-complete" style="width:100%">Mark as Complete</button>';
                         actions.appendChild(completeForm);
+                    } else if (b.status === 'RESCHEDULE_PENDING') {
+                        var pr = pendingReschedules[b.id];
+                        if (pr) {
+                            if (pr.requestedBy === currentUserId) {
+                                var awaitMsg = document.createElement('div');
+                                awaitMsg.style.cssText = 'flex:2;background:#fef3c7;color:#92400e;padding:0.6rem 1rem;border-radius:var(--radius-md);font-size:0.85rem;font-weight:600;';
+                                awaitMsg.textContent = 'Requested reschedule to ' + pr.newDate + ' at ' + pr.newTime + ' — awaiting client response';
+                                actions.appendChild(awaitMsg);
+                            } else {
+                                var acceptForm = document.createElement('form');
+                                acceptForm.method = 'post';
+                                acceptForm.action = contextPath + '/bookings/reschedule/respond';
+                                acceptForm.style.flex = '1';
+                                acceptForm.innerHTML =
+                                    '<input type="hidden" name="bookingId" value="' + b.id + '">' +
+                                    '<input type="hidden" name="rescheduleId" value="' + pr.rescheduleId + '">' +
+                                    '<input type="hidden" name="action" value="accept">' +
+                                    '<input type="hidden" name="keepBooking" value="true">' +
+                                    '<button type="submit" class="btn-complete" style="width:100%;padding:0.75rem;">Accept Reschedule</button>';
+                                actions.appendChild(acceptForm);
+                                var rejectForm = document.createElement('form');
+                                rejectForm.method = 'post';
+                                rejectForm.action = contextPath + '/bookings/reschedule/respond';
+                                rejectForm.style.flex = '1';
+                                rejectForm.innerHTML =
+                                    '<input type="hidden" name="bookingId" value="' + b.id + '">' +
+                                    '<input type="hidden" name="rescheduleId" value="' + pr.rescheduleId + '">' +
+                                    '<input type="hidden" name="action" value="reject">' +
+                                    '<input type="hidden" name="keepBooking" value="true">' +
+                                    '<button type="submit" class="btn-cancel-booking" style="width:100%;padding:0.75rem;">Reject Reschedule</button>';
+                                actions.appendChild(rejectForm);
+                            }
+                        }
                     }
 
-                    var cancelBtn = document.createElement('button');
-                    cancelBtn.className = 'btn-cancel-booking';
-                    cancelBtn.textContent = 'Cancel Booking';
-                    cancelBtn.onclick = function () {
-                        closeDetailModal();
-                        showCancelModal(b.id);
-                    };
-                    actions.appendChild(cancelBtn);
+                    if (b.status !== 'NO_SHOW' && b.status !== 'TECHNICIAN_COMPLETED') {
+                        var cancelBtn = document.createElement('button');
+                        cancelBtn.className = 'btn-cancel-booking';
+                        cancelBtn.textContent = 'Cancel Booking';
+                        cancelBtn.onclick = function () {
+                            closeDetailModal();
+                            showCancelModal(b.id);
+                        };
+                        actions.appendChild(cancelBtn);
+                    }
 
                     document.getElementById('detailModal').style.display = 'flex';
                 }
@@ -816,12 +992,25 @@
                     document.getElementById('cancelModal').style.display = 'none';
                 }
 
+                /* ── Reschedule Modal ──────────────────────────── */
+                function openRescheduleModal(bookingId) {
+                    document.getElementById('rescheduleBookingId').value = bookingId;
+                    document.getElementById('rescheduleModal').style.display = 'flex';
+                }
+
+                function closeRescheduleModal() {
+                    document.getElementById('rescheduleModal').style.display = 'none';
+                }
+
                 /* Close modals on overlay click */
                 document.getElementById('cancelModal').addEventListener('click', function (e) {
                     if (e.target === this) closeCancelModal();
                 });
                 document.getElementById('detailModal').addEventListener('click', function (e) {
                     if (e.target === this) closeDetailModal();
+                });
+                document.getElementById('rescheduleModal').addEventListener('click', function (e) {
+                    if (e.target === this) closeRescheduleModal();
                 });
 
                 /* ── List view rendering with recurring grouping ── */
@@ -868,8 +1057,60 @@
                     });
 
                     function statusBadgeHtml(status) {
-                        if (status === 'ACCEPTED') return '<span class="status-badge accepted">ACCEPTED</span>';
-                        return '<span class="status-badge awaiting">AWAITING USER CONFIRM</span>';
+                        switch (status) {
+                            case 'ACCEPTED': return '<span class="status-badge accepted">ACCEPTED</span>';
+                            case 'IN_PROGRESS': return '<span class="status-badge in-progress">IN PROGRESS</span>';
+                            case 'RESCHEDULE_PENDING': return '<span class="status-badge reschedule-pending">RESCHEDULE PENDING</span>';
+                            case 'NO_SHOW': return '<span class="status-badge no-show">NO SHOW</span>';
+                            case 'TECHNICIAN_COMPLETED': return '<span class="status-badge" style="background:#e0e7ff;color:#3730a3;">AWAITING USER CONFIRM</span>';
+                            default: return '<span class="status-badge awaiting">' + status + '</span>';
+                        }
+                    }
+
+                    function buildActionsHtml(b) {
+                        var html = '<a href="' + contextPath + '/chats/view?chatId=' + b.id + '" class="btn-chat">Open Chat</a>';
+                        if (b.status === 'ACCEPTED') {
+                            html += '<form method="post" action="' + contextPath + '/bookings/complete" style="flex:1;min-width:150px;">'
+                                + '<input type="hidden" name="bookingId" value="' + b.id + '">'
+                                + '<input type="hidden" name="completionType" value="start">'
+                                + '<button type="submit" class="btn-start-job" style="width:100%;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">Mark In Progress</button>'
+                                + '</form>'
+                                + '<button onclick="openRescheduleModal(' + b.id + ')" class="btn-reschedule-req" style="flex:1;min-width:150px;padding:0.75rem;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">Request Reschedule</button>';
+                        } else if (b.status === 'IN_PROGRESS') {
+                            html += '<form method="post" action="' + contextPath + '/bookings/complete" style="flex:1;min-width:150px;">'
+                                + '<input type="hidden" name="bookingId" value="' + b.id + '">'
+                                + '<input type="hidden" name="completionType" value="technician">'
+                                + '<button type="submit" class="btn-complete" style="width:100%;">Mark as Complete</button>'
+                                + '</form>';
+                        } else if (b.status === 'RESCHEDULE_PENDING') {
+                            var pr = pendingReschedules[b.id];
+                            if (pr) {
+                                if (pr.requestedBy === currentUserId) {
+                                    html += '<div style="flex:2;background:#fef3c7;color:#92400e;padding:0.6rem 1rem;border-radius:var(--radius-md);font-size:0.85rem;font-weight:600;">'
+                                        + 'Requested reschedule to ' + pr.newDate + ' at ' + formatTime(pr.newTime) + ' \u2014 awaiting client response</div>';
+                                } else {
+                                    html += '<div style="flex:2;background:var(--muted);padding:0.6rem 0.9rem;border-radius:var(--radius-md);font-size:0.82rem;">'
+                                        + '<strong>' + escHtml(pr.requesterName) + '</strong> requested to ' + pr.newDate + ' at ' + formatTime(pr.newTime)
+                                        + (pr.reason ? '<br><em>"' + escHtml(pr.reason) + '"</em>' : '') + '</div>'
+                                        + '<form method="post" action="' + contextPath + '/bookings/reschedule/respond" style="flex:1;min-width:110px;">'
+                                        + '<input type="hidden" name="bookingId" value="' + b.id + '">'
+                                        + '<input type="hidden" name="rescheduleId" value="' + pr.rescheduleId + '">'
+                                        + '<input type="hidden" name="action" value="accept">'
+                                        + '<input type="hidden" name="keepBooking" value="true">'
+                                        + '<button type="submit" class="btn-complete" style="width:100%;padding:0.65rem;">Accept</button></form>'
+                                        + '<form method="post" action="' + contextPath + '/bookings/reschedule/respond" style="flex:1;min-width:110px;">'
+                                        + '<input type="hidden" name="bookingId" value="' + b.id + '">'
+                                        + '<input type="hidden" name="rescheduleId" value="' + pr.rescheduleId + '">'
+                                        + '<input type="hidden" name="action" value="reject">'
+                                        + '<input type="hidden" name="keepBooking" value="true">'
+                                        + '<button type="submit" class="btn-cancel-booking" style="width:100%;padding:0.65rem;">Reject</button></form>';
+                                }
+                            }
+                        }
+                        if (b.status !== 'NO_SHOW' && b.status !== 'TECHNICIAN_COMPLETED') {
+                            html += '<button onclick="showCancelModal(' + b.id + ')" class="btn-cancel-booking">Cancel Booking</button>';
+                        }
+                        return html;
                     }
 
                     /* Recurring contract group cards */
@@ -896,14 +1137,6 @@
                             ? '<a href="https://www.google.com/maps?q=' + rep.lat + ',' + rep.lng + '" target="_blank" style="color:var(--primary);text-decoration:underline;margin-top:0.25rem;display:inline-block;">View on Google Maps</a>'
                             : '';
 
-                        var completeHtml = next.status === 'ACCEPTED'
-                            ? '<form method="post" action="' + contextPath + '/bookings/complete" style="flex:1;min-width:150px;">'
-                              + '<input type="hidden" name="bookingId" value="' + next.id + '">'
-                              + '<input type="hidden" name="completionType" value="technician">'
-                              + '<button type="submit" class="btn-complete" style="width:100%;">Mark as Complete</button>'
-                              + '</form>'
-                            : '';
-
                         var card = document.createElement('div');
                         card.className = 'booking-card recurring-contract-card';
                         card.innerHTML =
@@ -924,9 +1157,7 @@
                             + '<table><thead><tr><th>Month</th><th>Date &amp; Time</th><th>Status</th><th>Action</th></tr></thead>'
                             + '<tbody>' + monthRows + '</tbody></table></div>'
                             + '<div class="booking-actions" style="margin-top:1rem;">'
-                            + '<a href="' + contextPath + '/chats/view?chatId=' + next.id + '" class="btn-chat">Open Chat</a>'
-                            + completeHtml
-                            + '<button onclick="showCancelModal(' + next.id + ')" class="btn-cancel-booking">Cancel Next</button>'
+                            + buildActionsHtml(next)
                             + '</div>';
                         container.appendChild(card);
                     });
@@ -935,14 +1166,6 @@
                     nonRecurring.forEach(function (b) {
                         var mapHtml = (b.lat && b.lng && b.lat !== '' && b.lng !== '')
                             ? '<a href="https://www.google.com/maps?q=' + b.lat + ',' + b.lng + '" target="_blank" style="color:var(--primary);text-decoration:underline;margin-top:0.25rem;display:inline-block;">View on Google Maps</a>'
-                            : '';
-
-                        var completeHtml = b.status === 'ACCEPTED'
-                            ? '<form method="post" action="' + contextPath + '/bookings/complete" style="flex:1;min-width:150px;">'
-                              + '<input type="hidden" name="bookingId" value="' + b.id + '">'
-                              + '<input type="hidden" name="completionType" value="technician">'
-                              + '<button type="submit" class="btn-complete" style="width:100%;">Mark as Complete</button>'
-                              + '</form>'
                             : '';
 
                         var card = document.createElement('div');
@@ -960,9 +1183,7 @@
                             + '<div class="info-block"><p class="label">Problem Description:</p><p>' + escHtml(b.problem) + '</p></div>'
                             + '<div class="info-block"><p class="label">Location:</p><p>' + escHtml(b.address) + '</p>' + mapHtml + '</div>'
                             + '<div class="booking-actions">'
-                            + '<a href="' + contextPath + '/chats/view?chatId=' + b.id + '" class="btn-chat">Open Chat</a>'
-                            + completeHtml
-                            + '<button onclick="showCancelModal(' + b.id + ')" class="btn-cancel-booking">Cancel Booking</button>'
+                            + buildActionsHtml(b)
                             + '</div>';
                         container.appendChild(card);
                     });

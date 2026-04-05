@@ -33,16 +33,29 @@ public class CompleteBookingServlet extends HttpServlet {
                 return;
             }
 
+            // Technician marks job as started (ACCEPTED → IN_PROGRESS)
+            if ("start".equals(completionType)) {
+                if (booking.getTechnicianId() != currentUser.getUserId()) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Unauthorized");
+                    return;
+                }
+                if (!"ACCEPTED".equals(booking.getStatus())) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Booking must be accepted to start");
+                    return;
+                }
+                bookingDAO.updateBookingStatus(bookingId, "IN_PROGRESS");
+                response.sendRedirect(request.getContextPath() + "/bookings/calendar?started=true");
+            }
             // Technician marks as completed
-            if ("technician".equals(completionType)) {
+            else if ("technician".equals(completionType)) {
                 if (booking.getTechnicianId() != currentUser.getUserId()) {
                     response.sendError(HttpServletResponse.SC_FORBIDDEN, "Unauthorized");
                     return;
                 }
 
-                if (!"ACCEPTED".equals(booking.getStatus())) {
+                if (!"ACCEPTED".equals(booking.getStatus()) && !"IN_PROGRESS".equals(booking.getStatus())) {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                            "Booking must be accepted to mark as complete");
+                            "Booking must be accepted or in progress to mark as complete");
                     return;
                 }
 

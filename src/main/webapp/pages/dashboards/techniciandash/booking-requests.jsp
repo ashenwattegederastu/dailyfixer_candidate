@@ -27,6 +27,13 @@
                 Booking rejected.
             </div>
         </c:if>
+
+        <c:if test="${param.limitReached}">
+            <div style="background: #ef4444; color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                &#9888; You have reached your daily booking limit for <strong>${param.date}</strong>.
+                You cannot accept more bookings on that day. Try a different date or increase your daily limit in your profile settings.
+            </div>
+        </c:if>
         
         <c:if test="${empty bookingRequests}">
             <div style="text-align: center; padding: 3rem; background: var(--card); border-radius: var(--radius);">

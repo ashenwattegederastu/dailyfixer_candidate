@@ -74,8 +74,23 @@
                         <div style="margin-bottom: 1rem;">
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Booking Date
                                 *</label>
-                            <input type="date" name="bookingDate" required
+                            <input type="date" name="bookingDate" id="bookingDateInput" required
                                 style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0; background: var(--input);">
+                            <c:if test="${not empty nearestAvailableDate}">
+                                <p id="nearestDateHint"
+                                   style="font-size: 0.82rem; color: var(--primary); margin-top: 0.4rem; cursor: pointer;"
+                                   onclick="document.getElementById('bookingDateInput').value='${nearestAvailableDate}'">
+                                    Nearest available date: <strong id="nearestDateLabel"></strong> &mdash;
+                                    <span style="text-decoration: underline;">click to select</span>
+                                </p>
+                                <script>
+                                    (function () {
+                                        var d = new Date('${nearestAvailableDate}T00:00:00');
+                                        document.getElementById('nearestDateLabel').textContent =
+                                            d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                                    })();
+                                </script>
+                            </c:if>
                         </div>
 
                         <div style="margin-bottom: 1rem;">
