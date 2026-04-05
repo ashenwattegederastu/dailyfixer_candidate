@@ -97,51 +97,6 @@ CREATE TABLE `booking_cancellations` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `booking_no_shows`
---
-
-DROP TABLE IF EXISTS `booking_no_shows`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `booking_no_shows` (
-  `no_show_id` int NOT NULL AUTO_INCREMENT,
-  `booking_id` int NOT NULL,
-  `technician_id` int NOT NULL,
-  `scheduled_at` datetime NOT NULL,
-  `detected_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `notes` text,
-  PRIMARY KEY (`no_show_id`),
-  UNIQUE KEY `uq_ns_booking` (`booking_id`),
-  KEY `idx_ns_tech` (`technician_id`),
-  CONSTRAINT `fk_ns_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_ns_tech` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `booking_notifications`
---
-
-DROP TABLE IF EXISTS `booking_notifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `booking_notifications` (
-  `notification_id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `booking_id` int NOT NULL,
-  `message` varchar(500) NOT NULL,
-  `is_read` tinyint(1) NOT NULL DEFAULT '0',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`notification_id`),
-  KEY `idx_bn_user` (`user_id`),
-  KEY `idx_bn_booking` (`booking_id`),
-  KEY `idx_bn_read` (`is_read`),
-  CONSTRAINT `fk_bn_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_bn_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `booking_ratings`
 --
 
@@ -169,32 +124,6 @@ CREATE TABLE `booking_ratings` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `booking_reschedule_requests`
---
-
-DROP TABLE IF EXISTS `booking_reschedule_requests`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `booking_reschedule_requests` (
-  `reschedule_id` int NOT NULL AUTO_INCREMENT,
-  `booking_id` int NOT NULL,
-  `requested_by` int NOT NULL,
-  `new_date` date NOT NULL,
-  `new_time` time NOT NULL,
-  `reason` text,
-  `status` enum('PENDING','ACCEPTED','REJECTED') NOT NULL DEFAULT 'PENDING',
-  `responded_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`reschedule_id`),
-  KEY `idx_rr_booking` (`booking_id`),
-  KEY `idx_rr_status` (`status`),
-  KEY `fk_rr_requester` (`requested_by`),
-  CONSTRAINT `fk_rr_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_rr_requester` FOREIGN KEY (`requested_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `bookings`
 --
 
@@ -213,7 +142,7 @@ CREATE TABLE `bookings` (
   `location_address` varchar(255) NOT NULL,
   `location_latitude` decimal(10,8) DEFAULT NULL,
   `location_longitude` decimal(11,8) DEFAULT NULL,
-  `status` enum('REQUESTED','ACCEPTED','REJECTED','CANCELLED','IN_PROGRESS','TECHNICIAN_COMPLETED','FULLY_COMPLETED','NO_SHOW','RESCHEDULE_PENDING','AUTO_REJECTED') NOT NULL DEFAULT 'REQUESTED',
+  `status` enum('REQUESTED','ACCEPTED','REJECTED','CANCELLED','TECHNICIAN_COMPLETED','FULLY_COMPLETED') NOT NULL DEFAULT 'REQUESTED',
   `rejection_reason` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -230,7 +159,7 @@ CREATE TABLE `bookings` (
   CONSTRAINT `fk_booking_service` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_booking_technician` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_booking_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,7 +230,7 @@ CREATE TABLE `chats` (
   CONSTRAINT `fk_chat_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_chat_technician` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_chat_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1189,25 +1118,6 @@ CREATE TABLE `technician_availability` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `technician_daily_limits`
---
-
-DROP TABLE IF EXISTS `technician_daily_limits`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `technician_daily_limits` (
-  `limit_id` int NOT NULL AUTO_INCREMENT,
-  `technician_id` int NOT NULL,
-  `max_bookings_per_day` int NOT NULL DEFAULT '5',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`limit_id`),
-  UNIQUE KEY `uq_tdl_tech` (`technician_id`),
-  CONSTRAINT `fk_tdl_tech` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `users`
 --
 
@@ -1396,4 +1306,4 @@ CREATE TABLE `volunteers` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-05 17:39:34
+-- Dump completed on 2026-04-03 22:40:35

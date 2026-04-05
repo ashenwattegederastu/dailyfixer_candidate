@@ -1,10 +1,12 @@
 package com.dailyfixer.servlet.booking;
 
 import com.dailyfixer.dao.BookingDAO;
+import com.dailyfixer.dao.BookingRatingDAO;
 import com.dailyfixer.dao.RecurringContractDAO;
 import com.dailyfixer.dao.ServiceDAO;
 import com.dailyfixer.dao.TechnicianAvailabilityDAO;
 import com.dailyfixer.dao.TechnicianDailyLimitDAO;
+import com.dailyfixer.dao.UserDAO;
 import com.dailyfixer.model.Booking;
 import com.dailyfixer.model.RecurringContract;
 import com.dailyfixer.model.Service;
@@ -47,12 +49,26 @@ public class CreateBookingServlet extends HttpServlet {
             TechnicianAvailabilityDAO availabilityDAO = new TechnicianAvailabilityDAO();
             TechnicianAvailability availability = availabilityDAO.getAvailabilityByTechnicianId(service.getTechnicianId());
             
-            // Find the nearest day with open capacity to hint the user
+            // Technician profile enrichment
+            UserDAO userDAO = new UserDAO();
+            User technician = userDAO.getUserById(service.getTechnicianId());
+
+            BookingRatingDAO ratingDAO = new BookingRatingDAO();
+            double avgRating = ratingDAO.getAverageRatingForTechnician(service.getTechnicianId());
+            int ratingCount  = ratingDAO.getRatingCountForTechnician(service.getTechnicianId());
+
             BookingDAO bookingDAO = new BookingDAO();
+            int completedJobs = bookingDAO.countCompletedBookingsByTechnician(service.getTechnicianId());
+
+            // Find the nearest day with open capacity to hint the user
             TechnicianDailyLimitDAO limitDAO = new TechnicianDailyLimitDAO();
             LocalDate nearest = findNearestAvailableDate(service.getTechnicianId(), availability, bookingDAO, limitDAO);
 
             request.setAttribute("service", service);
+            request.setAttribute("technician", technician);
+            request.setAttribute("avgRating", avgRating);
+            request.setAttribute("ratingCount", ratingCount);
+            request.setAttribute("completedJobs", completedJobs);
             request.setAttribute("availability", availability);
             request.setAttribute("technicianId", service.getTechnicianId());
             if (nearest != null) {

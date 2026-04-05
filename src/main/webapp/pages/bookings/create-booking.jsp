@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
     <%@ taglib uri="jakarta.tags.core" prefix="c" %>
     <%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
+    <%@ taglib uri="jakarta.tags.functions" prefix="fn" %>
         <!DOCTYPE html>
         <html lang="en">
 
@@ -24,42 +25,111 @@
                     </div>
                 </c:if>
 
-                <div
-                    style="background: var(--card); padding: 1.5rem; border-radius: 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
-                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
-                        <div>
-                            <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">${service.serviceName}</h2>
-                            <p style="color: var(--muted-foreground); margin-bottom: 0.5rem;">${service.description}</p>
-                            <p style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">
-                                <c:choose>
-                                    <c:when test="${service.pricingType == 'fixed'}">LKR ${service.fixedRate}</c:when>
-                                    <c:otherwise>LKR ${service.hourlyRate}/hr</c:otherwise>
-                                </c:choose>
-                            </p>
+                <%-- ===== Technician Profile Card ===== --%>
+                <div style="background: var(--card); border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;">
+
+                        <%-- Avatar --%>
+                        <div style="width: 72px; height: 72px; border-radius: 50%; overflow: hidden; background: var(--muted); flex-shrink: 0; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;">
+                            <c:choose>
+                                <c:when test="${not empty technician.profilePicturePath}">
+                                    <img src="${pageContext.request.contextPath}/${technician.profilePicturePath}" alt="Technician" style="width:100%;height:100%;object-fit:cover;">
+                                </c:when>
+                                <c:otherwise>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 256 256" fill="currentColor" style="color:var(--muted-foreground);">
+                                        <path d="M230.93,220a8,8,0,0,1-6.93,4H32a8,8,0,0,1-6.92-12c15.23-26.33,38.7-45.21,66.09-54.16a72,72,0,1,1,73.66,0c27.39,8.95,50.86,27.83,66.09,54.16A8,8,0,0,1,230.93,220Z"/>
+                                    </svg>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
-                        <button type="button" id="viewReviewsBtn"
-                            onclick="openReviewsModal(${technicianId})"
-                            style="background: var(--secondary); color: var(--secondary-foreground); padding: 0.5rem 1.2rem; border: 1px solid var(--border); border-radius: 0; font-weight: 600; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">
-                            ★ View Reviews
-                        </button>
+
+                        <%-- Right side --%>
+                        <div style="flex: 1; min-width: 0;">
+
+                            <%-- Name / location --%>
+                            <h2 style="font-size: 1.4rem; font-weight: 700; margin: 0 0 0.1rem; color: var(--foreground); line-height: 1.3;">${service.serviceName}</h2>
+                            <p style="margin: 0 0 1rem; color: var(--muted-foreground); font-size: 0.9rem;">
+                                <c:if test="${not empty technician}">
+                                    ${technician.firstName} ${fn:substring(technician.lastName, 0, 1)}.
+                                    <c:if test="${not empty technician.city}">&nbsp;&middot;&nbsp; ${technician.city}, Sri Lanka</c:if>
+                                </c:if>
+                            </p>
+
+                            <%-- Metrics strip --%>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0; align-items: stretch; background: var(--muted); border: 1px solid var(--border); margin-bottom: 1rem; overflow: hidden;">
+
+                                <%-- Rate --%>
+                                <div style="padding: 0.65rem 1.1rem; display: flex; flex-direction: column; gap: 0.15rem; border-right: 1px solid var(--border);">
+                                    <span style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-foreground);">Rate</span>
+                                    <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary); white-space: nowrap;">
+                                        <c:choose>
+                                            <c:when test="${service.pricingType == 'fixed'}">LKR <fmt:formatNumber value="${service.fixedRate}" maxFractionDigits="0"/></c:when>
+                                            <c:otherwise>LKR <fmt:formatNumber value="${service.hourlyRate}" maxFractionDigits="0"/>/hr</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </div>
+
+                                <%-- Rating --%>
+                                <div style="padding: 0.65rem 1.1rem; display: flex; flex-direction: column; gap: 0.15rem; border-right: 1px solid var(--border);">
+                                    <span style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-foreground);">Rating</span>
+                                    <c:choose>
+                                        <c:when test="${ratingCount > 0}">
+                                            <span style="display: flex; align-items: center; gap: 0.3rem; font-size: 1rem; font-weight: 700; color: var(--foreground);">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" fill="#f59e0b"><path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34l13.49-58.54-45.16-39.42a16,16,0,0,1,9.1-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"/></svg>
+                                                <fmt:formatNumber value="${avgRating}" maxFractionDigits="1" minFractionDigits="1"/>
+                                                <span style="font-size: 0.78rem; font-weight: 400; color: var(--muted-foreground);">(<c:out value="${ratingCount}"/>)</span>
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span style="font-size: 0.85rem; color: var(--muted-foreground);">No ratings</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+
+                                <%-- Jobs done --%>
+                                <div style="padding: 0.65rem 1.1rem; display: flex; flex-direction: column; gap: 0.15rem; border-right: 1px solid var(--border);">
+                                    <span style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-foreground);">Jobs Done</span>
+                                    <span style="font-size: 1.05rem; font-weight: 700; color: var(--foreground);">${completedJobs}</span>
+                                </div>
+
+                                <%-- Extra fees (only if any) --%>
+                                <c:if test="${service.inspectionCharge > 0 or service.transportCharge > 0}">
+                                    <div style="padding: 0.65rem 1.1rem; display: flex; flex-direction: column; gap: 0.2rem;">
+                                        <span style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-foreground);">Extra Fees</span>
+                                        <c:if test="${service.inspectionCharge > 0}"><span style="font-size: 0.8rem; color: var(--muted-foreground);">Inspection: LKR <fmt:formatNumber value="${service.inspectionCharge}" maxFractionDigits="0"/></span></c:if>
+                                        <c:if test="${service.transportCharge > 0}"><span style="font-size: 0.8rem; color: var(--muted-foreground);">Transport: LKR <fmt:formatNumber value="${service.transportCharge}" maxFractionDigits="0"/></span></c:if>
+                                    </div>
+                                </c:if>
+                            </div>
+
+                            <%-- Description --%>
+                            <c:if test="${not empty service.description}">
+                                <p style="color: var(--muted-foreground); font-size: 0.92rem; line-height: 1.65; margin: 0 0 1rem;">${service.description}</p>
+                            </c:if>
+
+                            <%-- Availability day pills --%>
+                            <c:if test="${not empty availability}">
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 1rem;">
+                                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.06em; margin-right: 0.25rem;">Available</span>
+                                    <c:if test="${availability.monday}"><span style="padding: 0.18rem 0.55rem; background: var(--primary); color: var(--primary-foreground); font-size: 0.75rem; font-weight: 700;">Mon</span></c:if>
+                                    <c:if test="${availability.tuesday}"><span style="padding: 0.18rem 0.55rem; background: var(--primary); color: var(--primary-foreground); font-size: 0.75rem; font-weight: 700;">Tue</span></c:if>
+                                    <c:if test="${availability.wednesday}"><span style="padding: 0.18rem 0.55rem; background: var(--primary); color: var(--primary-foreground); font-size: 0.75rem; font-weight: 700;">Wed</span></c:if>
+                                    <c:if test="${availability.thursday}"><span style="padding: 0.18rem 0.55rem; background: var(--primary); color: var(--primary-foreground); font-size: 0.75rem; font-weight: 700;">Thu</span></c:if>
+                                    <c:if test="${availability.friday}"><span style="padding: 0.18rem 0.55rem; background: var(--primary); color: var(--primary-foreground); font-size: 0.75rem; font-weight: 700;">Fri</span></c:if>
+                                    <c:if test="${availability.saturday}"><span style="padding: 0.18rem 0.55rem; background: var(--primary); color: var(--primary-foreground); font-size: 0.75rem; font-weight: 700;">Sat</span></c:if>
+                                    <c:if test="${availability.sunday}"><span style="padding: 0.18rem 0.55rem; background: var(--primary); color: var(--primary-foreground); font-size: 0.75rem; font-weight: 700;">Sun</span></c:if>
+                                    <span style="font-size: 0.8rem; color: var(--muted-foreground); margin-left: 0.3rem;">${availability.startTime} &ndash; ${availability.endTime}</span>
+                                </div>
+                            </c:if>
+
+                            <%-- View reviews button --%>
+                            <button type="button" onclick="openReviewsModal(${technicianId})"
+                                style="background: var(--secondary); color: var(--secondary-foreground); padding: 0.45rem 1.1rem; border: 1px solid var(--border); font-weight: 600; cursor: pointer; font-size: 0.85rem;">
+                                &#9733; View Reviews
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <c:if test="${not empty availability}">
-                    <div style="background: var(--accent); padding: 1rem; border-radius: 0; margin-bottom: 1.5rem;">
-                        <p style="font-weight: 600; margin-bottom: 0.5rem;">Technician Availability:</p>
-                        <p>Available: ${availability.startTime} - ${availability.endTime}</p>
-                        <p>Days:
-                            <c:if test="${availability.monday}">Mon </c:if>
-                            <c:if test="${availability.tuesday}">Tue </c:if>
-                            <c:if test="${availability.wednesday}">Wed </c:if>
-                            <c:if test="${availability.thursday}">Thu </c:if>
-                            <c:if test="${availability.friday}">Fri </c:if>
-                            <c:if test="${availability.saturday}">Sat </c:if>
-                            <c:if test="${availability.sunday}">Sun</c:if>
-                        </p>
-                    </div>
-                </c:if>
 
                 <form method="post" action="${pageContext.request.contextPath}/bookings/create">
                     <input type="hidden" name="serviceId" value="${service.serviceId}">
