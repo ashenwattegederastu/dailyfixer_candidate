@@ -146,6 +146,27 @@
                                 *</label>
                             <input type="date" name="bookingDate" id="bookingDateInput" required
                                 style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0; background: var(--input);">
+                            <p id="advanceBookingHint"
+                               style="font-size: 0.82rem; color: var(--muted-foreground); margin-top: 0.4rem; display: none;">
+                                Same-day bookings are not accepted. Please select a date at least 24 hours from now.
+                            </p>
+                            <script>
+                                (function () {
+                                    var tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                                    var yyyy = tomorrow.getFullYear();
+                                    var mm   = String(tomorrow.getMonth() + 1).padStart(2, '0');
+                                    var dd   = String(tomorrow.getDate()).padStart(2, '0');
+                                    document.getElementById('bookingDateInput').min = yyyy + '-' + mm + '-' + dd;
+
+                                    document.getElementById('bookingDateInput').addEventListener('change', function () {
+                                        var hint = document.getElementById('advanceBookingHint');
+                                        var selected = new Date(this.value + 'T00:00:00');
+                                        var cutoff   = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                                        cutoff.setHours(0, 0, 0, 0);
+                                        hint.style.display = (selected < cutoff) ? '' : 'none';
+                                    });
+                                })();
+                            </script>
                             <c:if test="${not empty nearestAvailableDate}">
                                 <p id="nearestDateHint"
                                    style="font-size: 0.82rem; color: var(--primary); margin-top: 0.4rem; cursor: pointer;"

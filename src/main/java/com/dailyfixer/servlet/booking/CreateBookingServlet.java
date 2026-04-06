@@ -22,6 +22,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Map;
 
@@ -117,7 +118,18 @@ public class CreateBookingServlet extends HttpServlet {
             
             LocalDate bookingDate = LocalDate.parse(bookingDateStr);
             LocalTime bookingTime = LocalTime.parse(bookingTimeStr);
-            
+
+            // Enforce 24-hour advance booking window
+            if (LocalDateTime.of(bookingDate, bookingTime)
+                    .isBefore(LocalDateTime.now().plusHours(24))) {
+                request.setAttribute("error",
+                        "Bookings must be made at least 24 hours in advance. Same-day bookings are not accepted.");
+                request.setAttribute("service", service);
+                request.setAttribute("availability", availability);
+                request.getRequestDispatcher("/pages/bookings/create-booking.jsp").forward(request, response);
+                return;
+            }
+
             if (availability != null && !isValidBookingTime(availability, bookingDate, bookingTime)) {
                 request.setAttribute("error", "The selected date/time is not available for this technician");
                 request.setAttribute("service", service);

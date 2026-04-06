@@ -102,6 +102,13 @@
                             </a>
                         </li>
                         <li>
+                            <a href="${pageContext.request.contextPath}/admin/technician-penalties"
+                                id="nav-technician-penalties">
+                                <i class="ph ph-shield-warning"></i>
+                                Technician Penalties
+                            </a>
+                        </li>
+                        <li>
                             <a href="${pageContext.request.contextPath}/pages/dashboards/admindash/payouts.jsp"
                                 id="nav-payouts">
                                 <i class="ph ph-wallet"></i>
@@ -169,6 +176,8 @@
                         document.getElementById('nav-refunds')?.classList.add('active');
                     } else if (currentPath.includes('/admin/driver-incidents')) {
                         document.getElementById('nav-driver-incidents')?.classList.add('active');
+                    } else if (currentPath.includes('/admin/technician-penalties') || currentPath.includes('/lift-technician-penalty')) {
+                        document.getElementById('nav-technician-penalties')?.classList.add('active');
                     } else if (currentPath.includes('/admin/driver-requests') || currentPath.includes('/driver-request')) {
                         document.getElementById('nav-driver-requests')?.classList.add('active');
                     }

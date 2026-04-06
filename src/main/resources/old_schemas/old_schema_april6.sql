@@ -230,7 +230,7 @@ CREATE TABLE `bookings` (
   CONSTRAINT `fk_booking_service` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_booking_technician` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_booking_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1208,31 +1208,6 @@ CREATE TABLE `technician_daily_limits` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `technician_penalty_log`
---
-
-DROP TABLE IF EXISTS `technician_penalty_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `technician_penalty_log` (
-  `penalty_id` int NOT NULL AUTO_INCREMENT,
-  `technician_id` int NOT NULL,
-  `no_show_id` int NOT NULL COMMENT 'FK to booking_no_shows',
-  `penalty_level` tinyint NOT NULL COMMENT '1=warning, 2=listing suppressed, 3=suspended',
-  `issued_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `expires_at` timestamp NULL DEFAULT NULL COMMENT 'NULL means indefinite (level 3)',
-  `lifted_by` int DEFAULT NULL COMMENT 'admin user_id who lifted this penalty',
-  `lifted_at` timestamp NULL DEFAULT NULL,
-  `notes` text,
-  PRIMARY KEY (`penalty_id`),
-  KEY `idx_tpl_tech` (`technician_id`),
-  KEY `idx_tpl_noshow` (`no_show_id`),
-  CONSTRAINT `fk_tpl_ns` FOREIGN KEY (`no_show_id`) REFERENCES `booking_no_shows` (`no_show_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_tpl_tech` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `users`
 --
 
@@ -1421,4 +1396,4 @@ CREATE TABLE `volunteers` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-06 17:27:34
+-- Dump completed on 2026-04-05 17:39:34

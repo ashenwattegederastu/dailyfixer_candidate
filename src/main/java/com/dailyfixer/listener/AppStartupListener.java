@@ -24,7 +24,7 @@ public class AppStartupListener implements ServletContextListener {
     private static final int DELIVERY_CHECK_INTERVAL_MINUTES = 2;
 
     /** How often the booking no-show / auto-reject check runs (minutes). */
-    private static final int BOOKING_CHECK_INTERVAL_MINUTES = 10;
+    private static final int BOOKING_CHECK_INTERVAL_MINUTES = 2;
 
     private ScheduledExecutorService scheduler;
 

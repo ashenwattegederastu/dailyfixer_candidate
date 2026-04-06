@@ -147,6 +147,14 @@ public class ServiceDAO {
         List<Service> list = new ArrayList<>();
         String sql = "SELECT s.*, u.first_name, u.last_name, u.city FROM services s " +
                 "JOIN users u ON s.technician_id = u.user_id " +
+                "WHERE u.status != 'suspended' " +
+                "AND NOT EXISTS (" +
+                "    SELECT 1 FROM technician_penalty_log tpl " +
+                "    WHERE tpl.technician_id = u.user_id " +
+                "      AND tpl.penalty_level = 2 " +
+                "      AND tpl.lifted_at IS NULL " +
+                "      AND (tpl.expires_at IS NULL OR tpl.expires_at > NOW())" +
+                ") " +
                 "ORDER BY s.created_at DESC";
         try (Connection con = DBConnection.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql);

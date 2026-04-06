@@ -290,13 +290,22 @@ public class BookingDAO {
      * longer than the given hours, so they can be auto-rejected.
      * Returns [booking_id, user_id] pairs.
      */
-    public List<int[]> getAutoRejectCandidates(int olderThanHours) throws Exception {
+    public List<int[]> getAutoRejectCandidates(int olderThanHours, int gracePeriodMinutes) throws Exception {
+        // Catch two cases:
+        //  1. Booking was created more than olderThanHours ago and never responded to (original rule).
+        //  2. The scheduled service time has already passed the grace period and the booking is
+        //     still REQUESTED — the technician clearly isn't coming, regardless of when it was created.
+        //     (The no-show check only covers ACCEPTED bookings, so this gap must be closed here.)
         String sql = "SELECT booking_id, user_id FROM bookings " +
-                     "WHERE status = 'REQUESTED' AND created_at < DATE_SUB(NOW(), INTERVAL ? HOUR)";
+                     "WHERE status = 'REQUESTED' AND (" +
+                     "    created_at < DATE_SUB(NOW(), INTERVAL ? HOUR) " +
+                     "    OR TIMESTAMP(booking_date, booking_time) < DATE_SUB(NOW(), INTERVAL ? MINUTE)" +
+                     ")";
         List<int[]> results = new ArrayList<>();
         try (Connection con = DBConnection.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, olderThanHours);
+            ps.setInt(2, gracePeriodMinutes);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     results.add(new int[]{rs.getInt("booking_id"), rs.getInt("user_id")});

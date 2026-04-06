@@ -3,6 +3,7 @@ package com.dailyfixer.job;
 import com.dailyfixer.dao.BookingDAO;
 import com.dailyfixer.dao.BookingNoShowDAO;
 import com.dailyfixer.dao.BookingNotificationDAO;
+import com.dailyfixer.dao.TechnicianPenaltyDAO;
 import com.dailyfixer.model.BookingNoShow;
 
 import java.sql.Timestamp;
@@ -33,6 +34,7 @@ public class BookingNoShowJob implements Runnable {
     private final BookingNoShowDAO noShowDAO = new BookingNoShowDAO();
     private final BookingDAO bookingDAO = new BookingDAO();
     private final BookingNotificationDAO notifDAO = new BookingNotificationDAO();
+    private final TechnicianPenaltyDAO penaltyDAO = new TechnicianPenaltyDAO();
 
     @Override
     public void run() {
@@ -75,6 +77,20 @@ public class BookingNoShowJob implements Runnable {
                         + NO_SHOW_GRACE_MINUTES + " minutes of scheduled time.");
                 noShowDAO.recordNoShow(ns);
 
+                // Apply progressive penalty
+                if (ns.getNoShowId() > 0) {
+                    try {
+                        int penaltyLevel = penaltyDAO.issueIfNeeded(ns.getNoShowId(), technicianId);
+                        if (penaltyLevel > 0) {
+                            notifDAO.createNotification(technicianId, bookingId,
+                                    penaltyDAO.buildPenaltyMessage(penaltyLevel));
+                        }
+                    } catch (Exception pe) {
+                        System.err.println("[BookingNoShowJob] Penalty error for technician #"
+                                + technicianId + ": " + pe.getMessage());
+                    }
+                }
+
                 // Notify the client
                 notifDAO.createNotification(userId, bookingId,
                         "Your technician did not show up for booking #" + bookingId
@@ -92,7 +108,7 @@ public class BookingNoShowJob implements Runnable {
     // ── Rule 2: Auto-Reject Stale Requests ───────────────────────────────────
 
     private void runAutoRejectCheck() throws Exception {
-        List<int[]> candidates = bookingDAO.getAutoRejectCandidates(AUTO_REJECT_HOURS);
+        List<int[]> candidates = bookingDAO.getAutoRejectCandidates(AUTO_REJECT_HOURS, NO_SHOW_GRACE_MINUTES);
         System.out.println("[BookingNoShowJob] Rule 2 – auto-reject candidates: " + candidates.size());
 
         for (int[] row : candidates) {
