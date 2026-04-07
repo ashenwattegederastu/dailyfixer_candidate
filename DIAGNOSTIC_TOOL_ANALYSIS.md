@@ -56,8 +56,8 @@ The diagnostic tool is a **decision-tree based troubleshooting system**:
 - Rating: `/src/main/java/com/dailyfixer/model/TreeRating.java`
 
 ### Database schema
-- Active schema dump with diagnostic tables:  
-  `/src/main/resources/schema.sql` (diagnostic tables around lines 346-433)
+- Active schema dump with diagnostic tables (`diagnostic_categories`, `diagnostic_trees`, `diagnostic_nodes`, `diagnostic_ratings`):  
+  `/src/main/resources/schema.sql`
 - Extra migration copy:  
   `/src/main/resources/migrations/old_extra_migrs/diagnostic_schema.sql`
 
@@ -96,7 +96,7 @@ The diagnostic tool is a **decision-tree based troubleshooting system**:
   - `/api/volunteer/diagnostic/nodes`
 - Backend enforces:
   - role = volunteer
-  - reputation threshold via `ReputationUtils.isDiagnosticContributor(...)`
+  - reputation threshold via `ReputationUtils.isDiagnosticContributor(...)` (Diagnostic Contributor tier = 150+ reputation)
   - owner-only access to their own trees/nodes
 
 ---
