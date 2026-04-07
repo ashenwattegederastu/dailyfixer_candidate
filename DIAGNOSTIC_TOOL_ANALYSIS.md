@@ -17,7 +17,7 @@ The diagnostic tool is a **decision-tree based troubleshooting system**:
 
 ## 2) Main architecture
 
-## Frontend pages (JSP + JS)
+### Frontend pages (JSP + JS)
 - User browse:  
   `/src/main/webapp/pages/diagnostic/diagnostic-browse.jsp`
 - User runner:  
@@ -29,7 +29,7 @@ The diagnostic tool is a **decision-tree based troubleshooting system**:
   `/src/main/webapp/pages/dashboards/volunteerdash/diagnostic-trees.jsp`  
   `/src/main/webapp/pages/dashboards/volunteerdash/diagnostic-tree-builder.jsp`
 
-## Backend API (Servlets)
+### Backend API (Servlets)
 - Trees (admin): `/api/diagnostic/trees`  
   `/src/main/java/com/dailyfixer/servlet/diagnostic/DiagnosticTreeServlet.java`
 - Nodes (admin): `/api/diagnostic/nodes`  
@@ -43,19 +43,19 @@ The diagnostic tool is a **decision-tree based troubleshooting system**:
   `/api/volunteer/diagnostic/nodes`  
   in `VolunteerDiagnosticTreeServlet.java` and `VolunteerDiagnosticNodeServlet.java`
 
-## Data access layer
+### Data access layer
 - Trees DAO: `/src/main/java/com/dailyfixer/dao/DecisionTreeDAO.java`
 - Nodes DAO: `/src/main/java/com/dailyfixer/dao/DecisionNodeDAO.java`
 - Ratings DAO: `/src/main/java/com/dailyfixer/dao/TreeRatingDAO.java`
 - Categories DAO used by category/tree flows:  
   `/src/main/java/com/dailyfixer/dao/CategoryDAO.java`
 
-## Data models
+### Data models
 - Tree: `/src/main/java/com/dailyfixer/model/DecisionTree.java`
 - Node: `/src/main/java/com/dailyfixer/model/DecisionNode.java`
 - Rating: `/src/main/java/com/dailyfixer/model/TreeRating.java`
 
-## Database schema
+### Database schema
 - Active schema dump with diagnostic tables:  
   `/src/main/resources/schema.sql` (diagnostic tables around lines 346-433)
 - Extra migration copy:  
@@ -65,14 +65,14 @@ The diagnostic tool is a **decision-tree based troubleshooting system**:
 
 ## 3) End-to-end flow
 
-## A. User browse flow
+### A. User browse flow
 1. `diagnostic-browse.jsp` loads main categories (`GET /api/diagnostic/categories`).
-2. User selects main category → loads subcategories (`GET ...?parent={id}`).
+2. User selects main category → loads subcategories (`GET /api/diagnostic/categories?parent={id}`).
 3. User selects subcategory → loads published trees (`GET /api/diagnostic/trees?category={id}`).
 4. User can search trees (`GET /api/diagnostic/trees?search={text}`).
 5. User opens runner page with `?id={treeId}`.
 
-## B. User runner flow
+### B. User runner flow
 1. `diagnostic-runner.jsp` calls:  
    `GET /api/diagnostic/trees/{treeId}?includeNodes=true`
 2. Backend returns tree metadata + full hierarchical root node JSON.
@@ -80,7 +80,7 @@ The diagnostic tool is a **decision-tree based troubleshooting system**:
 4. On result node, rating UI appears.
 5. Rating submit: `POST /api/diagnostic/ratings` with `treeId`, `rating`, optional `feedback`.
 
-## C. Admin creation/edit flow
+### C. Admin creation/edit flow
 1. Builder page creates/updates tree via:
    - `POST /api/diagnostic/trees` (create)
    - `PUT /api/diagnostic/trees/{id}` (update metadata/status)
@@ -90,7 +90,7 @@ The diagnostic tool is a **decision-tree based troubleshooting system**:
    - `DELETE /api/diagnostic/nodes/{id}`
 3. Publish toggle sends status-only PUT update.
 
-## D. Volunteer flow
+### D. Volunteer flow
 - Same UI behavior as admin, but APIs are volunteer scoped:
   - `/api/volunteer/diagnostic/trees`
   - `/api/volunteer/diagnostic/nodes`
@@ -256,4 +256,3 @@ If asked to change behavior, locate:
 4) JSP fetch/render logic
 
 This 4-layer check keeps changes correct and minimal.
-
