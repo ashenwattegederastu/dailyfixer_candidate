@@ -587,7 +587,7 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
     </form>
 
     <!-- Google Maps for checkout location selection -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8zSes6UGbYKIHNzCp3tny5RgccFruILI&libraries=places&callback=initCheckoutMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&libraries=places&callback=initCheckoutMap" async defer></script>
 
     <script>
         let checkoutMap;

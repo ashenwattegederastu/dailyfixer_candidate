@@ -350,7 +350,7 @@
     }
 </script>
 <% if (hasLocation) { %>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8zSes6UGbYKIHNzCp3tny5RgccFruILI&callback=initDeliveryMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&callback=initDeliveryMap" async defer></script>
 <% } %>
 
 </body>

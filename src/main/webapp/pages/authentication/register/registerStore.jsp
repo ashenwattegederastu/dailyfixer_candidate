@@ -310,7 +310,7 @@
 
             <!-- Google Maps API with Places library -->
             <script
-                src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8zSes6UGbYKIHNzCp3tny5RgccFruILI&libraries=places&callback=initMap"
+                src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&libraries=places&callback=initMap"
                 async defer></script>
 
             <script>
