@@ -633,7 +633,7 @@
     loadBankDetails();
 </script>
 <% if (hasCoords) { %>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8zSes6UGbYKIHNzCp3tny5RgccFruILI&callback=initStoreMap" async defer onerror="handleStoreMapLoadError()"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&callback=initStoreMap" async defer onerror="handleStoreMapLoadError()"></script>
 <% } %>
 </body>
 </html>

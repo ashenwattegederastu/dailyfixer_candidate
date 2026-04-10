@@ -58,6 +58,36 @@ public class AddProductServlet extends HttpServlet {
         String warrantyInfo  = request.getParameter("warrantyInfo");
 
         try {
+            String negErr = validateAddProductNonNegative(request, quantity, price);
+            if (negErr != null) {
+                request.setAttribute("errorMsg", negErr);
+                request.getServletContext()
+                        .getRequestDispatcher("/pages/dashboards/storedash/addProduct.jsp")
+                        .forward(request, response);
+                return;
+            }
+
+            // Require at least one image: main product image OR at least one variant image
+            Part imagePartEarly = request.getPart("image");
+            boolean hasMainImage = imagePartEarly != null && imagePartEarly.getSize() > 0;
+            boolean hasAnyVariantImage = false;
+            try {
+                for (Part part : request.getParts()) {
+                    if ("variantImage[]".equals(part.getName()) && part.getSize() > 0) {
+                        hasAnyVariantImage = true;
+                        break;
+                    }
+                }
+            } catch (Exception ignored) {}
+            if (!hasMainImage && !hasAnyVariantImage) {
+                request.setAttribute("errorMsg",
+                        "Please upload a main product image, or at least one variant image.");
+                request.getServletContext()
+                        .getRequestDispatcher("/pages/dashboards/storedash/addProduct.jsp")
+                        .forward(request, response);
+                return;
+            }
+
             // 3. Create Product object (without image first — we need the ID to name the file)
             Product p = new Product();
             p.setName(name);
@@ -156,5 +186,49 @@ public class AddProductServlet extends HttpServlet {
             e.printStackTrace();
             response.getWriter().println("Error adding product: " + e.getMessage());
         }
+    }
+
+    /** Ensures main and variant prices/quantities are not negative. */
+    private static String validateAddProductNonNegative(HttpServletRequest request, int quantity, double price) {
+        if (quantity < 0 || price < 0) {
+            return "Price and quantity cannot be negative.";
+        }
+        String[] variantColors = request.getParameterValues("variantColor[]");
+        if (variantColors == null || variantColors.length == 0) {
+            return null;
+        }
+        String[] variantSizes = request.getParameterValues("variantSize[]");
+        String[] variantPowers = request.getParameterValues("variantPower[]");
+        String[] variantPrices = request.getParameterValues("variantPrice[]");
+        String[] variantQuantities = request.getParameterValues("variantQuantity[]");
+        for (int i = 0; i < variantColors.length; i++) {
+            String color = variantColors[i] != null ? variantColors[i].trim() : "";
+            String size = (variantSizes != null && i < variantSizes.length) ? variantSizes[i].trim() : "";
+            String power = (variantPowers != null && i < variantPowers.length) ? variantPowers[i].trim() : "";
+            String pStr = (variantPrices != null && i < variantPrices.length) ? variantPrices[i] : "";
+            String qStr = (variantQuantities != null && i < variantQuantities.length) ? variantQuantities[i] : "";
+            if (color.isEmpty() && size.isEmpty() && power.isEmpty()
+                    && (pStr == null || pStr.trim().isEmpty())
+                    && (qStr == null || qStr.trim().isEmpty())) {
+                continue;
+            }
+            try {
+                BigDecimal vp = (pStr != null && !pStr.trim().isEmpty())
+                        ? new BigDecimal(pStr.trim()) : BigDecimal.valueOf(price);
+                if (vp.compareTo(BigDecimal.ZERO) < 0) {
+                    return "Variant prices cannot be negative.";
+                }
+                int vq = 0;
+                if (qStr != null && !qStr.trim().isEmpty()) {
+                    vq = Integer.parseInt(qStr.trim());
+                }
+                if (vq < 0) {
+                    return "Variant stock cannot be negative.";
+                }
+            } catch (NumberFormatException e) {
+                return "Invalid variant price or quantity.";
+            }
+        }
+        return null;
     }
 }

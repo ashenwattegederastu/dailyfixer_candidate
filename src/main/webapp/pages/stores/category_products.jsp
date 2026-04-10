@@ -3,6 +3,11 @@
 <%@ page import="com.dailyfixer.model.ProductVariant" %>
 <%@ page import="com.dailyfixer.model.User" %>
 <%@ page import="com.dailyfixer.dao.ProductVariantDAO" %>
+<%@ page import="com.dailyfixer.dao.DiscountDAO" %>
+<%@ page import="com.dailyfixer.model.Discount" %>
+<%@ page import="com.dailyfixer.util.ProductDisplayUtil" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 
 <%
@@ -37,6 +42,15 @@
         hasLocationFilter = true;
     } else if (sessionLat != null && sessionLng != null) {
         hasLocationFilter = true;
+    }
+
+    boolean purchaseRadiusFilteredEmpty = Boolean.TRUE.equals(request.getAttribute("purchaseRadiusFilteredEmpty"));
+    boolean showNearbyProductsLine = hasLocationFilter && !purchaseRadiusFilteredEmpty
+            && products != null && !products.isEmpty();
+
+    String encSearchQ = "";
+    if (searchTerm != null && !searchTerm.isEmpty()) {
+        encSearchQ = URLEncoder.encode(searchTerm, StandardCharsets.UTF_8);
     }
 
     // Check if user is logged in
@@ -241,11 +255,35 @@
             text-decoration: none;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .product-card:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow-xl);
+        }
+
+        .product-card-image-wrap {
+            position: relative;
+            background: var(--muted);
+        }
+
+        .product-discount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+            background: var(--destructive, #dc2626);
+            color: var(--destructive-foreground, #fff);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 5px 9px;
+            border-radius: var(--radius-md, 6px);
+            line-height: 1.2;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            max-width: calc(100% - 20px);
+            text-align: center;
         }
 
         .product-card-image {
@@ -254,6 +292,7 @@
             object-fit: contain;
             background: var(--muted);
             padding: 20px;
+            display: block;
         }
 
         .product-card-body {
@@ -275,6 +314,19 @@
             color: var(--primary);
             font-weight: 600;
             margin-bottom: 12px;
+        }
+
+        .product-price-old {
+            text-decoration: line-through;
+            color: var(--muted-foreground);
+            font-weight: 500;
+            font-size: 0.92em;
+            margin-right: 8px;
+        }
+
+        .product-price-sale {
+            color: var(--primary);
+            font-weight: 700;
         }
 
         .product-card-desc {
@@ -314,6 +366,9 @@
             <% } %>
         </h1>
         <p>Browse products and tools near you</p>
+        <% if (showNearbyProductsLine) { %>
+        <p style="color: var(--muted-foreground); font-size: 0.95rem; margin-top: 8px;">Showing products from stores within 10 km of your saved map location.</p>
+        <% } %>
     </div>
 
     <!-- Search Top Bar -->
@@ -335,7 +390,10 @@
     <div class="content-layout">
         
         <!-- Sidebar Filter Map Panel -->
-        <div class="sidebar-filter" data-page-url="<%= request.getRequestURI() %>" data-category="<%= categoryName %>">
+        <div class="sidebar-filter" data-page-url="<%= request.getRequestURI() %>">
+            <input type="hidden" id="nav-is-search" value="<%= isSearch ? "1" : "0" %>">
+            <input type="hidden" id="nav-enc-search-q" value="<%= encSearchQ %>">
+            <input type="hidden" id="nav-category" value="<c:out value='${requestScope.category}'/>">
             
             <div class="filter-item">
                 <h3><i class="ph ph-funnel"></i> Sort Products</h3>
@@ -347,10 +405,10 @@
             </div>
 
             <div class="filter-item">
-                <h3><i class="ph ph-map-pin"></i> Set Your Location</h3>
-                <input id="location-input" type="text" placeholder="Search for your location...">
+                <h3><i class="ph ph-map-pin"></i> Filter by location</h3>
+                <input id="location-input" type="text" placeholder="Search for your address...">
                 <div id="location-map"></div>
-                <div class="map-hint">Type an address above OR click on the map to set location</div>
+                <div class="map-hint">Click the map or drag the pin to choose where you are, then press <strong>Save Location</strong> to show only products from stores within 10 km.</div>
                 
                 <button id="btn-set-location" class="btn-primary btn-block" style="margin-bottom: 8px;">Save Location</button>
                 <button id="btn-clear-location" class="btn-danger btn-block"><i class="ph ph-x-circle"></i> Clear Location</button>
@@ -373,34 +431,96 @@
         <div class="products-panel">
             <div class="product-grid" id="product-grid">
                 <% if (products != null && !products.isEmpty()) {
+                    DiscountDAO discountDAO = new DiscountDAO();
                     for (Product item : products) {
-                        double displayPrice = item.getPrice();
-                        if (item.getPrice() == 0.00) {
-                            try {
-                                ProductVariantDAO variantDAO = new ProductVariantDAO();
-                                List<ProductVariant> variants = variantDAO.getVariantsByProductId(item.getProductId());
-                                if (variants != null && !variants.isEmpty() && variants.get(0).getPrice() != null) {
-                                    displayPrice = variants.get(0).getPrice().doubleValue();
+                        double listPrice = item.getPrice();
+                        List<ProductVariant> itemVariants = null;
+                        try {
+                            ProductVariantDAO variantDAO = new ProductVariantDAO();
+                            itemVariants = variantDAO.getVariantsByProductId(item.getProductId());
+                            if (item.getPrice() == 0.00 && itemVariants != null && !itemVariants.isEmpty()
+                                    && itemVariants.get(0).getPrice() != null) {
+                                listPrice = itemVariants.get(0).getPrice().doubleValue();
+                            }
+                        } catch (Exception e) {
+                            // If error getting variants, use main price
+                        }
+
+                        Discount activeDiscount = null;
+                        try {
+                            boolean useFirstVariant = item.getPrice() == 0.00 && itemVariants != null && !itemVariants.isEmpty();
+                            if (useFirstVariant) {
+                                activeDiscount = discountDAO.getActiveDiscountForVariant(itemVariants.get(0).getVariantId());
+                                if (activeDiscount == null || !activeDiscount.isValid()) {
+                                    activeDiscount = discountDAO.getActiveDiscountForProduct(item.getProductId());
                                 }
-                            } catch (Exception e) {
-                                // If error getting variants, use main price
+                            } else {
+                                activeDiscount = discountDAO.getActiveDiscountForProduct(item.getProductId());
+                            }
+                        } catch (Exception e) {
+                            activeDiscount = null;
+                        }
+
+                        double originalPrice = listPrice;
+                        double finalPrice = listPrice;
+                        boolean showDiscount = false;
+                        if (activeDiscount != null && activeDiscount.isValid() && originalPrice > 0) {
+                            double discounted = activeDiscount.calculateDiscountedPrice(originalPrice);
+                            if (discounted + 1e-6 < originalPrice) {
+                                finalPrice = discounted;
+                                showDiscount = true;
                             }
                         }
+
+                        String discountBadgeText = "";
+                        String discountTitle = "";
+                        if (showDiscount && activeDiscount != null) {
+                            discountTitle = activeDiscount.getDiscountName() != null
+                                    ? activeDiscount.getDiscountName().replace("\"", "&quot;") : "";
+                            if ("PERCENTAGE".equalsIgnoreCase(activeDiscount.getDiscountType())) {
+                                double pct = activeDiscount.getDiscountValue().doubleValue();
+                                discountBadgeText = (pct == Math.floor(pct))
+                                        ? String.format("%.0f", pct) + "% OFF"
+                                        : String.format("%.1f", pct) + "% OFF";
+                            } else {
+                                double fixed = activeDiscount.getDiscountValue().doubleValue();
+                                discountBadgeText = "Rs. " + (fixed == Math.floor(fixed)
+                                        ? String.format("%.0f", fixed) : String.format("%.2f", fixed)) + " OFF";
+                            }
+                        }
+
+                        String cpiImg = ProductDisplayUtil.getDisplayImagePath(item, itemVariants);
                 %>
-                <div class="product-card" data-name="<%= item.getName().toLowerCase() %>" data-price="<%= displayPrice %>">
-                    <% String cpiImg = item.getImagePath(); %>
-                    <img src="<%=cpiImg != null && !cpiImg.isEmpty() ? request.getContextPath() + "/" + cpiImg : request.getContextPath() + "/assets/images/tools.png"%>" alt="<%= item.getName() %>" class="product-card-image">
+                <div class="product-card" data-name="<%= item.getName().toLowerCase() %>" data-price="<%= finalPrice %>">
+                    <div class="product-card-image-wrap">
+                        <% if (showDiscount && !discountBadgeText.isEmpty()) { %>
+                        <span class="product-discount-badge" title="<%= discountTitle %>"><%= discountBadgeText %></span>
+                        <% } %>
+                        <img src="<%=cpiImg != null && !cpiImg.isEmpty() ? request.getContextPath() + "/" + cpiImg : request.getContextPath() + "/assets/images/tools.png"%>" alt="<%= item.getName() %>" class="product-card-image">
+                    </div>
                     <div class="product-card-body">
                         <h3 class="product-card-title"><%= item.getName() %></h3>
-                        <p class="product-card-price">Rs. <%= String.format("%.2f", displayPrice) %></p>
+                        <p class="product-card-price">
+                            <% if (showDiscount) { %>
+                            <span class="product-price-old">Rs. <%= String.format("%.2f", originalPrice) %></span>
+                            <span class="product-price-sale">Rs. <%= String.format("%.2f", finalPrice) %></span>
+                            <% } else { %>
+                            Rs. <%= String.format("%.2f", finalPrice) %>
+                            <% } %>
+                        </p>
                         <p class="product-card-desc"><%= item.getDescription() %></p>
                         <a href="${pageContext.request.contextPath}/product_details?productId=<%= item.getProductId() %>" class="btn-primary btn-block" style="text-align: center;">View Details</a>
                     </div>
                 </div>
                 <% } } else { %>
                     <div class="no-results" id="no-products">
+                        <% if (purchaseRadiusFilteredEmpty) { %>
+                        <h3>No products in your area</h3>
+                        <p>No stores with products in this list within 10 km of your saved location. Pick another point on the map and save again, or clear location to see all products.</p>
+                        <% } else { %>
                         <h3>No Products Found</h3>
                         <p>No products available in this category or matching your search criteria.</p>
+                        <% } %>
                     </div>
                 <% } %>
             </div>
@@ -410,7 +530,7 @@
 </div>
 
 <!-- Google Maps API with Places -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8zSes6UGbYKIHNzCp3tny5RgccFruILI&libraries=places&callback=initLocationMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&libraries=places&callback=initLocationMap" async defer></script>
 
 <script>
     var map;
@@ -423,7 +543,44 @@
     var urlParams = new URLSearchParams(window.location.search);
     var currentLat = urlParams.get('lat') || '<%= sessionLat != null ? sessionLat : "" %>';
     var currentLng = urlParams.get('lng') || '<%= sessionLng != null ? sessionLng : "" %>';
-    var category = '<%= categoryName %>';
+
+    var ctxPath = '${pageContext.request.contextPath}';
+
+    function getNavCategory() {
+        var el = document.getElementById('nav-category');
+        return el ? el.value : '';
+    }
+
+    function isSearchPage() {
+        var el = document.getElementById('nav-is-search');
+        return el && el.value === '1';
+    }
+
+    function getEncSearchQ() {
+        var el = document.getElementById('nav-enc-search-q');
+        return el ? el.value : '';
+    }
+
+    function applyFilterNavigate() {
+        if (selectedLat === null || selectedLng === null) {
+            return;
+        }
+        if (isSearchPage()) {
+            window.location.href = ctxPath + '/search?q=' + getEncSearchQ()
+                + '&lat=' + selectedLat + '&lng=' + selectedLng;
+        } else {
+            window.location.href = ctxPath + '/products?category=' + encodeURIComponent(getNavCategory())
+                + '&lat=' + selectedLat + '&lng=' + selectedLng;
+        }
+    }
+
+    function clearLocationNavigate() {
+        if (isSearchPage()) {
+            window.location.href = ctxPath + '/search?q=' + getEncSearchQ() + '&clearLocation=true';
+        } else {
+            window.location.href = ctxPath + '/products?category=' + encodeURIComponent(getNavCategory()) + '&clearLocation=true';
+        }
+    }
 
     function initLocationMap() {
         var defaultCenter = { lat: 7.8731, lng: 80.7718 };
@@ -478,7 +635,6 @@
                 setLocation(lat, lng);
                 map.setCenter(place.geometry.location);
                 map.setZoom(14);
-                updateStatus('Location selected: ' + (place.formatted_address || 'Selected'), true);
             }
         });
     }
@@ -489,7 +645,7 @@
         var pos = new google.maps.LatLng(lat, lng);
         marker.setPosition(pos);
         marker.setVisible(true);
-        updateStatus('Lat: ' + lat.toFixed(4) + ', Lng: ' + lng.toFixed(4), true);
+        updateStatus('Location selected. Click <strong>Save Location</strong> below to filter products by nearby stores.', true);
     }
 
     function reverseGeocode(latLng) {
@@ -502,7 +658,7 @@
 
     function updateStatus(message, isActive) {
         var statusDiv = document.getElementById('location-status');
-        if(isActive) {
+        if (isActive) {
             statusDiv.innerHTML = '<i class="ph ph-check-circle"></i> ' + message;
         } else {
             statusDiv.textContent = message;
@@ -554,10 +710,9 @@
         if (setLocationBtn) {
             setLocationBtn.addEventListener('click', function () {
                 if (selectedLat !== null && selectedLng !== null) {
-                    window.location.href = '${pageContext.request.contextPath}/products?category=' + encodeURIComponent(category) +
-                        '&lat=' + selectedLat + '&lng=' + selectedLng;
+                    applyFilterNavigate();
                 } else {
-                    alert('Please select a location on the map first.');
+                    alert('Please select a location on the map first (click the map or search for an address).');
                 }
             });
         }
@@ -581,7 +736,7 @@
 
         if (clearLocationBtn) {
             clearLocationBtn.addEventListener('click', function () {
-                window.location.href = '${pageContext.request.contextPath}/products?category=' + encodeURIComponent(category) + '&clearLocation=true';
+                clearLocationNavigate();
             });
         }
     });

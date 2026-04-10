@@ -7,6 +7,7 @@
 <%@ page import="com.dailyfixer.dao.ProductDAO" %>
 <%@ page import="com.dailyfixer.dao.ProductVariantDAO" %>
 <%@ page import="com.dailyfixer.dao.DiscountDAO" %>
+<%@ page import="com.dailyfixer.util.ProductDisplayUtil" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.HashSet" %>
@@ -254,6 +255,7 @@ let productData = {};
             Product product = productDAO.getProductById(productId);
             if (product != null) {
                 List<ProductVariant> variants = variantDAO.getVariantsByProductId(productId);
+                String modalImgRel = ProductDisplayUtil.getDisplayImagePathVariantFirst(product, variants);
 %>
 productData[<%=productId%>] = {
     id: <%=product.getProductId()%>,
@@ -263,7 +265,7 @@ productData[<%=productId%>] = {
     price: <%=product.getPrice()%>,
     quantity: <%=product.getQuantity()%>,
     unit: "<%=product.getQuantityUnit() != null ? product.getQuantityUnit() : ""%>",
-    image: "<%=product.getImagePath() != null && !product.getImagePath().isEmpty() ? request.getContextPath() + "/" + product.getImagePath() : ""%>",
+    image: "<%=modalImgRel != null && !modalImgRel.isEmpty() ? request.getContextPath() + "/" + modalImgRel : ""%>",
     variants: [
         <% if (variants != null && !variants.isEmpty()) {
             for (int i = 0; i < variants.size(); i++) {

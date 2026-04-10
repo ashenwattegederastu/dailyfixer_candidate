@@ -222,6 +222,61 @@
                 gap: 8px;
             }
         }
+
+        /* Order details modal */
+        .order-details-modal-content {
+            max-width: 640px;
+            width: 92%;
+            max-height: 90vh;
+            overflow-y: auto;
+            text-align: left;
+            padding: 24px 28px;
+        }
+        .order-details-modal-content .modal-title { margin-bottom: 16px; }
+        .order-detail-inner { font-size: 0.92em; color: var(--foreground); }
+        .od-section { margin-bottom: 18px; }
+        .od-section h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted-foreground);
+            margin: 0 0 8px 0;
+            font-weight: 600;
+        }
+        .od-row { display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+        .od-label { color: var(--muted-foreground); min-width: 120px; }
+        .od-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88em;
+            margin-top: 6px;
+        }
+        .od-items-table th, .od-items-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+        .od-items-table th { color: var(--muted-foreground); font-weight: 600; font-size: 0.8rem; }
+        .od-items-table td:last-child, .od-items-table th:last-child { text-align: right; }
+        .od-totals { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+        .od-totals .od-row { justify-content: space-between; }
+        .od-totals .od-grand { font-weight: 700; font-size: 1.05em; color: var(--primary); }
+        .modal-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .modal-header-row .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.75rem;
+            line-height: 1;
+            cursor: pointer;
+            color: var(--muted-foreground);
+            padding: 0 4px;
+        }
+        .modal-header-row .close-btn:hover { color: var(--foreground); }
     </style>
 </head>
 <body>
@@ -234,7 +289,7 @@
     <c:choose>
         <c:when test="${not empty orders}">
             <div class="orders-grid">
-                <c:forEach var="order" items="${orders}">
+                <c:forEach var="order" items="${orders}" varStatus="orderLoop">
                     <c:set var="statusClass" value="status-${fn:toLowerCase(order.status)}"/>
                     <div class="order-card">
                         <div class="order-header-info">
@@ -271,16 +326,7 @@
                                 <c:when test="${not empty orderItemsMap[order.orderId]}">
                                     <c:forEach var="item" items="${orderItemsMap[order.orderId]}">
                                         <div class="product-item">
-                                            <c:choose>
-                                                <c:when test="${not empty productsMap[item.productId] and not empty productsMap[item.productId].imagePath}">
-                                                    <img src="${pageContext.request.contextPath}/${productsMap[item.productId].imagePath}"
-                                                         alt="${item.productName}"
-                                                         class="product-image">
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <div class="product-placeholder">📦</div>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <div class="product-placeholder">📦</div>
                                             <div class="product-details">
                                                 <div class="product-name">${item.productName}</div>
                                                 <div class="product-meta">${order.currency}${item.unitPrice} &times; ${item.quantity}</div>
@@ -328,16 +374,95 @@
                                 <button type="button" class="action-btn btn-view" onclick="showPinModal('${deliveryPinMap[order.orderId]}')">View Delivery PIN</button>
                             </c:if>
                             <c:if test="${order.status == 'DELIVERED'}">
-                                <c:forEach var="item" items="${orderItemsMap[order.orderId]}">
+                                <c:forEach var="item" items="${orderItemsForReviewMap[order.orderId]}">
                                     <button type="button" class="action-btn btn-resolve" 
                                             onclick="showReviewModal(${item.productId}, '${fn:escapeXml(item.productName)}')">
                                         Write Review
                                     </button>
                                 </c:forEach>
                             </c:if>
-                            <button type="button" class="action-btn btn-view">Order Details</button>
+                            <button type="button" class="action-btn btn-view" onclick="showOrderDetailsModal(${orderLoop.index})">Order Details</button>
                         </div>
                     </div>
+
+                    <%-- Full order detail clone for modal --%>
+                    <template id="order-detail-tpl-${orderLoop.index}">
+                        <div class="order-detail-inner">
+                            <div class="od-section">
+                                <h4>Status</h4>
+                                <c:choose>
+                                    <c:when test="${order.status == 'PENDING'}"><span class="status-badge ${statusClass}">Pending Payment</span></c:when>
+                                    <c:when test="${order.status == 'PAID'}"><span class="status-badge ${statusClass}">Paid</span></c:when>
+                                    <c:when test="${order.status == 'STORE_ACCEPTED'}"><span class="status-badge ${statusClass}">Dispatching</span></c:when>
+                                    <c:when test="${order.status == 'PROCESSING'}"><span class="status-badge ${statusClass}">Processing</span></c:when>
+                                    <c:when test="${order.status == 'OUT_FOR_DELIVERY'}"><span class="status-badge ${statusClass}">Out for Delivery</span></c:when>
+                                    <c:when test="${order.status == 'DELIVERED'}"><span class="status-badge ${statusClass}">Delivered</span></c:when>
+                                    <c:when test="${order.status == 'CANCELLED'}"><span class="status-badge ${statusClass}">Cancelled</span></c:when>
+                                    <c:when test="${order.status == 'REFUND_PENDING'}"><span class="status-badge ${statusClass}">Refund Pending</span></c:when>
+                                    <c:when test="${order.status == 'REFUNDED'}"><span class="status-badge ${statusClass}">Refunded</span></c:when>
+                                    <c:otherwise><span class="status-badge ${statusClass}">${fn:escapeXml(order.status)}</span></c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div class="od-section">
+                                <h4>Order</h4>
+                                <div class="od-row"><span class="od-label">Order ID</span><span><code style="font-size:0.9em;">${fn:escapeXml(order.orderId)}</code></span></div>
+                                <div class="od-row"><span class="od-label">Placed</span><span>
+                                    <c:if test="${order.createdAt != null}"><fmt:formatDate value="${order.createdAt}" pattern="MMMM d, yyyy 'at' h:mm a"/></c:if>
+                                    <c:if test="${order.createdAt == null}">—</c:if>
+                                </span></div>
+                                <c:if test="${not empty order.payherePaymentId}">
+                                    <div class="od-row"><span class="od-label">PayHere payment ID</span><span><code style="font-size:0.85em;">${fn:escapeXml(order.payherePaymentId)}</code></span></div>
+                                </c:if>
+                                <c:if test="${not empty storeDetailsMap[order.orderId]}">
+                                    <div class="od-row"><span class="od-label">Store</span><span>${fn:escapeXml(storeDetailsMap[order.orderId].storeName)}</span></div>
+                                </c:if>
+                            </div>
+                            <div class="od-section">
+                                <h4>Delivery &amp; contact</h4>
+                                <div class="od-row"><span class="od-label">Name</span><span>${fn:escapeXml(order.fullName)}</span></div>
+                                <div class="od-row"><span class="od-label">Email</span><span>${fn:escapeXml(order.email)}</span></div>
+                                <div class="od-row"><span class="od-label">Phone</span><span>${fn:escapeXml(order.phone)}</span></div>
+                                <div class="od-row"><span class="od-label">Address</span><span>${fn:escapeXml(order.address)}</span></div>
+                                <div class="od-row"><span class="od-label">City</span><span>${fn:escapeXml(order.city)}</span></div>
+                                <div class="od-row"><span class="od-label">Doorstep drop consent</span><span>${order.doorstepDropConsent ? 'Yes' : 'No'}</span></div>
+                            </div>
+                            <div class="od-section">
+                                <h4>Items</h4>
+                                <c:choose>
+                                    <c:when test="${not empty orderItemsMap[order.orderId]}">
+                                        <table class="od-items-table">
+                                            <thead><tr><th>Product</th><th>Qty</th><th>Line total</th></tr></thead>
+                                            <tbody>
+                                                <c:forEach var="line" items="${orderItemsMap[order.orderId]}">
+                                                    <tr>
+                                                        <td>${fn:escapeXml(line.productName)}</td>
+                                                        <td>${line.quantity}</td>
+                                                        <td>${order.currency}<fmt:formatNumber value="${line.totalPrice}" minFractionDigits="2" maxFractionDigits="2"/></td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </tbody>
+                                        </table>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <p style="color:var(--muted-foreground);margin:0;">${fn:escapeXml(order.productName)}</p>
+                                    </c:otherwise>
+                                </c:choose>
+                                <div class="od-totals">
+                                    <c:if test="${not empty order.deliveryFee}">
+                                        <div class="od-row"><span>Delivery fee</span><span>${order.currency}<fmt:formatNumber value="${order.deliveryFee}" minFractionDigits="2" maxFractionDigits="2"/></span></div>
+                                    </c:if>
+                                    <div class="od-row od-grand"><span>Order total</span><span>${order.currency}${order.formattedAmount}</span></div>
+                                </div>
+                            </div>
+                            <c:if test="${order.status == 'REFUNDED' || order.status == 'REFUND_PENDING'}">
+                                <div class="od-section">
+                                    <h4>Refund</h4>
+                                    <c:if test="${not empty order.refundReason}"><div class="od-row"><span class="od-label">Reason</span><span>${fn:escapeXml(order.refundReason)}</span></div></c:if>
+                                    <c:if test="${not empty order.refundNumber}"><div class="od-row"><span class="od-label">Reference</span><span><code>${fn:escapeXml(order.refundNumber)}</code></span></div></c:if>
+                                </div>
+                            </c:if>
+                        </div>
+                    </template>
                 </c:forEach>
             </div>
         </c:when>
@@ -420,6 +545,17 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="orderDetailsModal">
+    <div class="modal-content order-details-modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header-row">
+            <h3 class="modal-title" style="margin:0;">Order details</h3>
+            <button type="button" class="close-btn" onclick="closeOrderDetailsModal()" aria-label="Close">&times;</button>
+        </div>
+        <div id="orderDetailsModalBody"></div>
+        <button type="button" class="btn-secondary" style="width:100%;margin-top:16px;" onclick="closeOrderDetailsModal()">Close</button>
+    </div>
+</div>
+
 <div class="modal-overlay" id="reviewModal">
     <div class="modal-content" style="max-width: 600px; padding: 32px;">
         <div class="modal-title" id="reviewModalTitle" style="margin-bottom: 24px;">Write a Review</div>
@@ -467,6 +603,25 @@
 
 <script>
     const contextPath = "${pageContext.request.contextPath}";
+
+    function showOrderDetailsModal(index) {
+        const tpl = document.getElementById('order-detail-tpl-' + index);
+        const body = document.getElementById('orderDetailsModalBody');
+        if (!tpl || !body) return;
+        body.innerHTML = '';
+        body.appendChild(tpl.content.cloneNode(true));
+        document.getElementById('orderDetailsModal').classList.add('active');
+    }
+    function closeOrderDetailsModal() {
+        const el = document.getElementById('orderDetailsModal');
+        if (el) el.classList.remove('active');
+    }
+    const orderDetailsModalEl = document.getElementById('orderDetailsModal');
+    if (orderDetailsModalEl) {
+        orderDetailsModalEl.addEventListener('click', function (e) {
+            if (e.target.id === 'orderDetailsModal') closeOrderDetailsModal();
+        });
+    }
 
     function showPinModal(pin) {
         document.getElementById('pinDisplay').innerText = pin;

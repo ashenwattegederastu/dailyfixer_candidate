@@ -10,6 +10,7 @@ import com.dailyfixer.model.Product;
 import com.dailyfixer.model.ProductVariant;
 import com.dailyfixer.model.Store;
 import com.dailyfixer.model.User;
+import com.dailyfixer.util.ProductDisplayUtil;
 import com.dailyfixer.util.PurchaseLimitUtil;
 
 import jakarta.servlet.ServletException;
@@ -118,23 +119,26 @@ public class CartServlet extends HttpServlet {
             String variantColor = null;
             String variantSize = null;
             String variantPower = null;
+            ProductVariant selectedVariant = null;
 
             // If variant is selected, use variant price and stock
             if (variantId != null) {
                 ProductVariantDAO variantDAO = new ProductVariantDAO();
-                ProductVariant variant = variantDAO.getVariantById(variantId);
-                
-                if (variant == null || variant.getProductId() != productId) {
+                selectedVariant = variantDAO.getVariantById(variantId);
+
+                if (selectedVariant == null || selectedVariant.getProductId() != productId) {
                     out.print("{\"error\":\"Invalid variant\"}");
                     return;
                 }
 
-                price = variant.getPrice().doubleValue();
-                stock = variant.getQuantity();
-                variantColor = variant.getColor();
-                variantSize = variant.getSize();
-                variantPower = variant.getPower();
+                price = selectedVariant.getPrice().doubleValue();
+                stock = selectedVariant.getQuantity();
+                variantColor = selectedVariant.getColor();
+                variantSize = selectedVariant.getSize();
+                variantPower = selectedVariant.getPower();
             }
+
+            String cartImagePath = ProductDisplayUtil.resolveCartThumbnailPath(product, selectedVariant);
 
             // Stock check
             if (stock <= 0) {
@@ -221,7 +225,7 @@ public class CartServlet extends HttpServlet {
                         discountedPrice,
                         originalPrice,
                         quantity,
-                        product.getImagePath(),
+                        cartImagePath,
                         variantId,
                         variantColor,
                         variantSize,
@@ -235,6 +239,7 @@ public class CartServlet extends HttpServlet {
                 cart.put(cartKey, item);
             } else {
                 item.setQuantity(Math.min(proposedQuantity, stock));
+                item.setImagePath(cartImagePath);
                 // Update discount info if it changed
                 if (discountName != null) {
                     item.setOriginalPrice(originalPrice);

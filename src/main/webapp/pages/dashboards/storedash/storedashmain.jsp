@@ -81,7 +81,7 @@
     BigDecimal totalRevenue = BigDecimal.ZERO;
     
     try {
-        // Fetch all active orders in one query (PAID, PENDING, PROCESSING, OUT_FOR_DELIVERY, DELIVERED)
+        // Fetch all active orders in one query (includes STORE_ACCEPTED after dispatch)
         allStoreOrders = orderDAO.getAllOrdersByStore(storeUsername);
 
         if (allStoreOrders != null) {
@@ -95,6 +95,7 @@
                         processingOrders.add(order);
                         break;
                     case "OUT_FOR_DELIVERY":
+                    case "STORE_ACCEPTED":
                         outForDeliveryOrders.add(order);
                         break;
                     default:
@@ -315,24 +316,21 @@
             </div>
             <% if (mostSellingProduct != null && topSales != null) { 
                 String imgPath = mostSellingProduct.getImagePath();
-                String imgSrc = (imgPath != null && !imgPath.isEmpty()) 
-                    ? request.getContextPath() + "/" + imgPath 
-                    : request.getContextPath() + "/assets/images/power-drill.png";
+                boolean hasImg = imgPath != null && !imgPath.isEmpty();
             %>
                 <div class="most-selling-item">
-                    <img src="<%= imgSrc %>" alt="<%= mostSellingProduct.getName() %>">
+                    <% if (hasImg) { %>
+                    <img src="<%= request.getContextPath() + "/" + imgPath %>" alt="<%= mostSellingProduct.getName() %>">
+                    <% } %>
                     <div class="info">
                         <h4><%= mostSellingProduct.getName() %></h4>
                         <p><%= topSales.getQuantitySold() %> units sold</p>
                     </div>
                 </div>
             <% } else { %>
-                <div class="most-selling-item">
-                    <img src="${pageContext.request.contextPath}/assets/images/power-drill.png" alt="No sales">
-                    <div class="info">
-                        <h4>No sales yet</h4>
-                        <p>Top seller will appear here</p>
-                    </div>
+                <div class="most-selling-empty">
+                    <p>No sales data yet</p>
+                    <span>Your top-selling product will show here once orders come in.</span>
                 </div>
             <% } %>
         </div>

@@ -49,6 +49,45 @@ function removeVariantRow(btn) {
     checkVariantFields();
 }
 
+function hasAnyVariantImageSelected() {
+    return Array.from(document.querySelectorAll('.variant-image-input')).some(function (inp) {
+        return inp.files && inp.files.length > 0;
+    });
+}
+
+/** Main image is required unless the user uploads at least one variant image. (Add-product form only.) */
+function updateMainImageRequirement() {
+    if (!document.getElementById('addProductForm')) return;
+    var main = document.getElementById('productImageInput');
+    var note = document.getElementById('mainImageNote');
+    if (!main) return;
+    if (hasAnyVariantImageSelected()) {
+        main.removeAttribute('required');
+        if (note) {
+            note.textContent = '(Optional — variant image(s) provided)';
+            note.classList.add('success');
+        }
+    } else {
+        main.setAttribute('required', 'required');
+        if (note) {
+            note.textContent = '(Required unless at least one variant image is uploaded)';
+            note.classList.remove('success');
+        }
+    }
+}
+
+function validateProductImagesOnSubmit() {
+    if (!document.getElementById('addProductForm')) return true;
+    var main = document.getElementById('productImageInput');
+    var hasMain = main && main.files && main.files.length > 0;
+    if (hasMain || hasAnyVariantImageSelected()) {
+        return true;
+    }
+    alert('Please upload a main product image, or at least one variant image.');
+    if (main) main.focus();
+    return false;
+}
+
 function checkVariantFields() {
     var variantRows = document.querySelectorAll('.variant-row');
     var hasVariants = false;
@@ -98,6 +137,52 @@ function checkVariantFields() {
             priceNote.classList.remove('success');
         }
     }
+    updateMainImageRequirement();
+}
+
+/** Main price/quantity and variant price/stock must be >= 0 */
+function validateNonNegativeNumericFields() {
+    var priceEl = document.getElementsByName('price')[0];
+    var qtyEl = document.getElementById('quantityInput');
+    if (priceEl && priceEl.value !== '') {
+        var pv = parseFloat(priceEl.value);
+        if (!isNaN(pv) && pv < 0) {
+            alert('Price cannot be negative.');
+            priceEl.focus();
+            return false;
+        }
+    }
+    if (qtyEl && qtyEl.value !== '') {
+        var qv = parseFloat(qtyEl.value);
+        if (!isNaN(qv) && qv < 0) {
+            alert('Quantity cannot be negative.');
+            qtyEl.focus();
+            return false;
+        }
+    }
+    var rows = document.querySelectorAll('.variant-row');
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var vp = row.querySelector('input[name="variantPrice[]"]');
+        var vq = row.querySelector('input[name="variantQuantity[]"]');
+        if (vp && vp.value !== '') {
+            var vpv = parseFloat(vp.value);
+            if (!isNaN(vpv) && vpv < 0) {
+                alert('Variant ' + (i + 1) + ': price cannot be negative.');
+                vp.focus();
+                return false;
+            }
+        }
+        if (vq && vq.value !== '') {
+            var vqq = parseInt(vq.value, 10);
+            if (!isNaN(vqq) && vqq < 0) {
+                alert('Variant ' + (i + 1) + ': stock cannot be negative.');
+                vq.focus();
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 /* Validate that every non-empty variant row has both price and quantity filled.
@@ -145,6 +230,13 @@ function validateVariantsOnSubmit() {
 document.addEventListener('DOMContentLoaded', function() {
     checkVariantFields();
 
+    var mainImg = document.getElementById('productImageInput');
+    if (mainImg) {
+        mainImg.addEventListener('change', function() {
+            updateMainImageRequirement();
+        });
+    }
+
     var variantContainer = document.getElementById('variantsContainer');
     if (variantContainer) {
         variantContainer.addEventListener('input', function(e) {
@@ -155,11 +247,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        variantContainer.addEventListener('change', function(e) {
+            if (e.target.classList && e.target.classList.contains('variant-image-input')) {
+                updateMainImageRequirement();
+            }
+        });
+
         // Attach submit safeguard to the parent form
         var form = variantContainer.closest('form');
         if (form) {
             form.addEventListener('submit', function(e) {
+                if (!validateNonNegativeNumericFields()) {
+                    e.preventDefault();
+                    return;
+                }
                 if (!validateVariantsOnSubmit()) {
+                    e.preventDefault();
+                    return;
+                }
+                if (!validateProductImagesOnSubmit()) {
                     e.preventDefault();
                 }
             });

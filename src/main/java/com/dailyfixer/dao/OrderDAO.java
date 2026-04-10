@@ -7,7 +7,9 @@ import com.dailyfixer.util.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data Access Object for Order entity.
@@ -28,6 +30,18 @@ public class OrderDAO {
 
     private static final String UPDATE_STATUS_ONLY = "UPDATE orders SET status = ? WHERE order_id = ?";
 
+    /**
+     * Only transitions PENDING → PAID so duplicate PayHere notifies / Success page cannot
+     * both apply inventory deduction (MySQL matched-row counts would otherwise allow a second reduction).
+     */
+    private static final String CLAIM_ORDER_PAID_FROM_PENDING_WITH_PAYMENT =
+            "UPDATE orders SET status = 'PAID', payhere_payment_id = ? WHERE order_id = ? "
+                    + "AND UPPER(TRIM(COALESCE(status,''))) = 'PENDING'";
+
+    private static final String CLAIM_ORDER_PAID_FROM_PENDING_NO_PAYMENT =
+            "UPDATE orders SET status = 'PAID' WHERE order_id = ? "
+                    + "AND UPPER(TRIM(COALESCE(status,''))) = 'PENDING'";
+
     private static final String MARK_REFUNDED =
         "UPDATE orders " +
         "SET status = 'REFUNDED', refund_number = ?, refunded_at = NOW(), updated_at = NOW() " +
@@ -43,7 +57,7 @@ public class OrderDAO {
 
     private static final String SELECT_ORDERS_BY_STORE = "SELECT * FROM orders WHERE UPPER(TRIM(status)) = UPPER(TRIM(?)) AND (store_id = ? OR store_username = ?) ORDER BY created_at DESC";
 
-    private static final String SELECT_ALL_ORDERS_BY_STORE = "SELECT * FROM orders WHERE (store_id = ? OR store_username = ?) AND UPPER(TRIM(status)) IN ('PAID','PENDING','PROCESSING','OUT_FOR_DELIVERY','DELIVERED') ORDER BY created_at DESC";
+    private static final String SELECT_ALL_ORDERS_BY_STORE = "SELECT * FROM orders WHERE (store_id = ? OR store_username = ?) AND UPPER(TRIM(status)) IN ('PAID','PENDING','PROCESSING','STORE_ACCEPTED','OUT_FOR_DELIVERY','DELIVERED') ORDER BY created_at DESC";
 
     private static final String SELECT_REFUND_ORDERS_BY_STORE = "SELECT * FROM orders WHERE (store_id = ? OR store_username = ?) AND UPPER(TRIM(status)) IN ('REFUND_PENDING','REFUNDED') ORDER BY created_at DESC";
 
@@ -64,14 +78,14 @@ public class OrderDAO {
     private static final String SELECT_PRODUCT_SALES_BY_STORE_ID = "SELECT oi.product_name, SUM(oi.quantity) AS total_qty FROM order_items oi "
             +
             "JOIN orders o ON oi.order_id = o.order_id " +
-            "WHERE oi.store_id = ? AND UPPER(TRIM(o.status)) IN ('PAID','PENDING','PROCESSING','OUT_FOR_DELIVERY','DELIVERED') "
+            "WHERE oi.store_id = ? AND UPPER(TRIM(o.status)) IN ('PAID','PENDING','PROCESSING','STORE_ACCEPTED','OUT_FOR_DELIVERY','DELIVERED') "
             +
             "GROUP BY oi.product_id, oi.product_name ORDER BY total_qty DESC";
 
     private static final String SELECT_PRODUCT_SALES_BY_STORE_USERNAME = "SELECT oi.product_id, oi.product_name, SUM(oi.quantity) AS total_qty FROM order_items oi "
             +
             "JOIN orders o ON oi.order_id = o.order_id " +
-            "WHERE o.store_username = ? AND UPPER(TRIM(o.status)) IN ('PAID','PENDING','PROCESSING','OUT_FOR_DELIVERY','DELIVERED') "
+            "WHERE o.store_username = ? AND UPPER(TRIM(o.status)) IN ('PAID','PENDING','PROCESSING','STORE_ACCEPTED','OUT_FOR_DELIVERY','DELIVERED') "
             +
             "GROUP BY oi.product_id, oi.product_name ORDER BY total_qty DESC";
 
@@ -248,6 +262,45 @@ public class OrderDAO {
     }
 
     /**
+     * Atomically sets an order to PAID only if it is still PENDING.
+     * Call this before {@link #reduceStockForOrder(String)} so only one concurrent
+     * caller (PayHere notify, success page, duplicate webhook) can deduct inventory.
+     *
+     * @param payherePaymentId optional; when null or blank, {@code payhere_payment_id} is not changed
+     * @return true if exactly one row was updated (this path should reduce stock)
+     */
+    public boolean claimOrderPaidFromPending(String orderId, String payherePaymentId) {
+        if (orderId == null || orderId.isBlank()) {
+            return false;
+        }
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = getConnection();
+            boolean setPayment = payherePaymentId != null && !payherePaymentId.isBlank();
+            if (setPayment) {
+                stmt = conn.prepareStatement(CLAIM_ORDER_PAID_FROM_PENDING_WITH_PAYMENT);
+                stmt.setString(1, payherePaymentId);
+                stmt.setString(2, orderId);
+            } else {
+                stmt = conn.prepareStatement(CLAIM_ORDER_PAID_FROM_PENDING_NO_PAYMENT);
+                stmt.setString(1, orderId);
+            }
+            int n = stmt.executeUpdate();
+            if (n > 0) {
+                System.out.println("claimOrderPaidFromPending: claimed PAID for order " + orderId + " (rows=" + n + ")");
+            }
+            return n > 0;
+        } catch (SQLException | ClassNotFoundException e) {
+            System.err.println("claimOrderPaidFromPending: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            closeResources(stmt, conn);
+        }
+    }
+
+    /**
      * Get all orders by status.
      *
      * @param status The order status (e.g., "PAID", "PENDING")
@@ -324,8 +377,8 @@ public class OrderDAO {
     }
 
     /**
-     * Get all orders for a store (PAID, PENDING, PROCESSING, OUT_FOR_DELIVERY,
-     * DELIVERED) for charts and trends.
+     * Get all orders for a store (PAID, PENDING, PROCESSING, STORE_ACCEPTED,
+     * OUT_FOR_DELIVERY, DELIVERED) for charts and trends.
      */
     public java.util.List<Order> getAllOrdersByStore(String storeUsername) {
         return getAllOrdersByStore(storeUsername, 0);
@@ -409,8 +462,8 @@ public class OrderDAO {
     }
 
     /**
-     * Get top selling products by quantity for a store (from PAID, PROCESSING,
-     * OUT_FOR_DELIVERY, DELIVERED orders).
+     * Get top selling products by quantity for a store (from PAID, PENDING,
+     * PROCESSING, STORE_ACCEPTED, OUT_FOR_DELIVERY, DELIVERED orders).
      */
     public java.util.List<ProductSales> getProductSalesByStore(int storeId) {
         Connection conn = null;
@@ -439,7 +492,7 @@ public class OrderDAO {
     /**
      * Get top selling products by quantity for a store by store username.
      * Uses orders.store_username so it works even when StoreDAO returns null.
-     * Includes PAID, PENDING, PROCESSING, OUT_FOR_DELIVERY, DELIVERED.
+     * Includes PAID, PENDING, PROCESSING, STORE_ACCEPTED, OUT_FOR_DELIVERY, DELIVERED.
      */
     public java.util.List<ProductSales> getProductSalesByStore(String storeUsername) {
         Connection conn = null;
@@ -738,31 +791,45 @@ public class OrderDAO {
                 return false;
             }
 
+            // Merge duplicate lines for the same product/variant (defensive — checkout should not duplicate)
+            Map<String, Integer> qtyByKey = new LinkedHashMap<>();
+            for (OrderItem item : orderItems) {
+                Integer vid = item.getVariantId();
+                if (vid != null && vid == 0) {
+                    vid = null;
+                }
+                String key = item.getProductId() + ":" + (vid == null ? "P" : "V" + vid);
+                qtyByKey.merge(key, item.getQuantity(), Integer::sum);
+            }
+
             com.dailyfixer.dao.ProductDAO productDAO = new com.dailyfixer.dao.ProductDAO();
             com.dailyfixer.dao.ProductVariantDAO variantDAO = new com.dailyfixer.dao.ProductVariantDAO();
 
             boolean allSuccessful = true;
 
-            for (OrderItem item : orderItems) {
+            for (Map.Entry<String, Integer> e : qtyByKey.entrySet()) {
                 try {
-                    if (item.getVariantId() != null) {
-                        // Reduce variant stock
-                        boolean success = variantDAO.reduceVariantQuantity(item.getVariantId(), item.getQuantity());
+                    String key = e.getKey();
+                    int qty = e.getValue();
+                    boolean isVariant = key.contains(":V");
+                    if (isVariant) {
+                        int variantId = Integer.parseInt(key.substring(key.indexOf(":V") + 2));
+                        boolean success = variantDAO.reduceVariantQuantity(variantId, qty);
                         if (!success) {
-                            System.err.println("Failed to reduce stock for variant ID: " + item.getVariantId());
+                            System.err.println("Failed to reduce stock for variant ID: " + variantId);
                             allSuccessful = false;
                         }
                     } else {
-                        // Reduce product stock
-                        boolean success = productDAO.reduceProductQuantity(item.getProductId(), item.getQuantity());
+                        int productId = Integer.parseInt(key.substring(0, key.indexOf(':')));
+                        boolean success = productDAO.reduceProductQuantity(productId, qty);
                         if (!success) {
-                            System.err.println("Failed to reduce stock for product ID: " + item.getProductId());
+                            System.err.println("Failed to reduce stock for product ID: " + productId);
                             allSuccessful = false;
                         }
                     }
-                } catch (Exception e) {
-                    System.err.println("Error reducing stock for order item: " + e.getMessage());
-                    e.printStackTrace();
+                } catch (Exception ex) {
+                    System.err.println("Error reducing stock for order item: " + ex.getMessage());
+                    ex.printStackTrace();
                     allSuccessful = false;
                 }
             }

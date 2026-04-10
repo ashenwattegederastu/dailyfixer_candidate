@@ -1,7 +1,10 @@
 package com.dailyfixer.servlet.product;
 
 import com.dailyfixer.dao.ProductDAO;
+import com.dailyfixer.dao.StoreDAO;
 import com.dailyfixer.model.Product;
+import com.dailyfixer.util.MarketplaceLocationSession;
+import com.dailyfixer.util.PurchaseRadiusFilter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,6 +19,8 @@ public class SearchServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        MarketplaceLocationSession.syncFromRequest(request);
 
         String searchTerm = request.getParameter("q");
         
@@ -114,7 +119,19 @@ public class SearchServlet extends HttpServlet {
                     }
                 }
             }
-            
+
+            StoreDAO storeDAO = new StoreDAO();
+            HttpSession session = request.getSession();
+            Double userLat = MarketplaceLocationSession.getLat(session);
+            Double userLng = MarketplaceLocationSession.getLng(session);
+            if (userLat != null && userLng != null && products != null) {
+                int before = products.size();
+                products = PurchaseRadiusFilter.withinRadius(products, userLat, userLng, storeDAO);
+                if (before > 0 && products.isEmpty()) {
+                    request.setAttribute("purchaseRadiusFilteredEmpty", Boolean.TRUE);
+                }
+            }
+
             // Set attributes for the JSP
             request.setAttribute("products", products);
             request.setAttribute("category", category != null ? category : "Search Results");

@@ -3,6 +3,7 @@
 <%@ page import="com.dailyfixer.model.Discount" %>
 <%@ page import="com.dailyfixer.model.User" %>
 <%@ page import="com.dailyfixer.model.Store" %>
+<%@ page import="com.dailyfixer.util.ProductDisplayUtil" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.LinkedHashSet" %>
@@ -124,42 +125,40 @@
         <!-- Left: Image Gallery -->
         <div class="image-gallery">
             <div class="main-image">
-                <% String pdImg = product.getImagePath(); %>
+                <% String pdImg = product.getImagePath();
+                   String mainDisplayRel = ProductDisplayUtil.getDisplayImagePath(product, variants);
+                   boolean hasMainProductUpload = (pdImg != null && !pdImg.isEmpty());
+                %>
                 <img id="mainProductImage"
-                     src="<%= pdImg != null && !pdImg.isEmpty() ? request.getContextPath() + "/" + pdImg : request.getContextPath() + "/assets/images/tools.png" %>"
+                     src="<%= mainDisplayRel != null && !mainDisplayRel.isEmpty() ? request.getContextPath() + "/" + mainDisplayRel : request.getContextPath() + "/assets/images/tools.png" %>"
                      alt="<%= product.getName() %>"
                      style="transition: opacity 0.15s ease;">
             </div>
 
             <!-- Thumbnail Strip -->
             <%
-                boolean hasGalleryImages = (pdImg != null && !pdImg.isEmpty());
-                if (!hasGalleryImages) {
-                    for (ProductVariant pv0 : variants) {
-                        if (pv0.getImagePath() != null && !pv0.getImagePath().isEmpty()) {
-                            hasGalleryImages = true;
-                            break;
-                        }
-                    }
-                }
+                boolean hasGalleryImages = (mainDisplayRel != null && !mainDisplayRel.isEmpty());
             %>
             <% if (hasGalleryImages) { %>
             <div class="thumbnail-strip">
-                <% if (pdImg != null && !pdImg.isEmpty()) { %>
+                <% if (hasMainProductUpload) { %>
                 <div class="thumbnail-item active"
                      data-src="<%= request.getContextPath() + "/" + pdImg %>">
                     <img src="<%= request.getContextPath() + "/" + pdImg %>" alt="Main">
                 </div>
                 <% } %>
-                <% for (ProductVariant pv : variants) { %>
-                    <% if (pv.getImagePath() != null && !pv.getImagePath().isEmpty()) { %>
-                    <div class="thumbnail-item"
+                <% boolean markFirstVariantActive = !hasMainProductUpload;
+                   for (ProductVariant pv : variants) {
+                       if (pv.getImagePath() == null || pv.getImagePath().isEmpty()) continue;
+                       boolean isActive = markFirstVariantActive;
+                       markFirstVariantActive = false;
+                %>
+                    <div class="thumbnail-item<%= isActive ? " active" : "" %>"
                          data-src="<%= request.getContextPath() + "/" + pv.getImagePath() %>"
                          data-variant-id="<%= pv.getVariantId() %>"
                          title="<% if (pv.getColor() != null && !pv.getColor().isEmpty()) { %><%= pv.getColor() %><% } %><% if (pv.getSize() != null && !pv.getSize().isEmpty()) { %> <%= pv.getSize() %><% } %><% if (pv.getPower() != null && !pv.getPower().isEmpty()) { %> <%= pv.getPower() %><% } %>">
                         <img src="<%= request.getContextPath() + "/" + pv.getImagePath() %>" alt="Variant">
                     </div>
-                    <% } %>
                 <% } %>
             </div>
             <% } %>
@@ -463,7 +462,7 @@
 </script>
 
 <% if (store != null && store.getLatitude() != 0.0 && store.getLongitude() != 0.0) { %>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8zSes6UGbYKIHNzCp3tny5RgccFruILI&callback=initStoreMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&callback=initStoreMap" async defer></script>
 <% } %>
 <script src="${pageContext.request.contextPath}/assets/js/product_details.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/product_reviews.js"></script>

@@ -44,7 +44,13 @@
                     <div class="form-card">
                         <h2>Add Product</h2>
 
-                        <form action="${pageContext.request.contextPath}/AddProductServlet" method="post"
+                        <% if (request.getAttribute("errorMsg") != null) { %>
+                        <div class="server-error" style="margin-bottom: 1rem; color: var(--destructive, #b91c1c);">
+                            <%= request.getAttribute("errorMsg") %>
+                        </div>
+                        <% } %>
+
+                        <form id="addProductForm" action="${pageContext.request.contextPath}/AddProductServlet" method="post"
                             enctype="multipart/form-data">
 
                             <label for="name">Product Name</label>
@@ -79,7 +85,7 @@
                                     class="form-help">(Required if no
                                     variants)</span></label>
                             <input type="number" step="0.01" name="quantity" id="quantityInput"
-                                placeholder="Enter quantity" value="0">
+                                placeholder="Enter quantity" value="0" min="0">
 
                             <label for="quantityUnit">Unit</label>
                             <select name="quantityUnit" required>
@@ -91,7 +97,7 @@
 
                             <label for="price">Price (Rs.) <span id="priceNote"
                                     class="form-help"></span></label>
-                            <input type="number" step="0.01" name="price" placeholder="Enter price" required>
+                            <input type="number" step="0.01" name="price" placeholder="Enter price" required min="0">
 
                             <label for="description">Description</label>
                             <textarea name="description" id="description" rows="4"
@@ -102,8 +108,8 @@
                             <textarea name="warrantyInfo" id="warrantyInfo" rows="2"
                                 placeholder="e.g. 1 year manufacturer warranty, 6 months for parts"></textarea>
 
-                            <label for="productImageInput">Product Image</label>
-                            <input type="file" name="image" id="productImageInput" accept="image/*" required>
+                            <label for="productImageInput">Product Image <span id="mainImageNote" class="form-help">(Required unless at least one variant image is uploaded)</span></label>
+                            <input type="file" name="image" id="productImageInput" accept="image/*">
                             <div class="image-preview-wrap" id="imagePreviewWrap" style="display:none;">
                                 <img id="productImagePreview" src="" alt="Preview" class="image-preview">
                             </div>
@@ -131,12 +137,12 @@
                                             </div>
                                             <div>
                                                 <label>Variant Price (Rs.)</label>
-                                                <input type="number" step="0.01" name="variantPrice[]" placeholder="Price">
+                                                <input type="number" step="0.01" name="variantPrice[]" placeholder="Price" min="0">
                                             </div>
                                         </div>
                                         <div>
                                             <label>Variant Stock</label>
-                                            <input type="number" name="variantQuantity[]" placeholder="Stock quantity">
+                                            <input type="number" name="variantQuantity[]" placeholder="Stock quantity" min="0">
                                         </div>
                                         <div class="variant-image-wrap">
                                             <label>Variant Image <span class="form-help">(Optional)</span></label>

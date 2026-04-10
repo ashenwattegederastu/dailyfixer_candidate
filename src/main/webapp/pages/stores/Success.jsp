@@ -33,40 +33,12 @@
         // This is a fallback in case NotifyServlet wasn't called (common in sandbox/development)
         if (order != null) {
             String currentStatus = order.getStatus() != null ? order.getStatus().trim() : "";
-            boolean statusChangedToPaid = false;
-            
-            if ("PENDING".equalsIgnoreCase(currentStatus)) {
-                boolean updated = orderDAO.updateStatus(orderIdParam, "PAID");
-                if (updated) {
-                    System.out.println("Order status updated to PAID on success page: " + orderIdParam);
-                    statusChangedToPaid = true;
-                    // Refresh order data first
+            // Atomic PENDING→PAID only — avoids double stock deduction vs PayHere / duplicate loads
+            if (!"PAID".equalsIgnoreCase(currentStatus)) {
+                boolean claimed = orderDAO.claimOrderPaidFromPending(orderIdParam, null);
+                if (claimed) {
+                    System.out.println("Order claimed PAID on success page: " + orderIdParam);
                     order = orderDAO.findOrderById(orderIdParam);
-                    
-                    // Reduce stock for this order
-                    try {
-                        boolean stockReduced = orderDAO.reduceStockForOrder(orderIdParam);
-                        if (stockReduced) {
-                            System.out.println("Stock reduced successfully for order: " + orderIdParam);
-                        } else {
-                            System.err.println("Warning: Stock reduction failed or incomplete for order: " + orderIdParam);
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error reducing stock for order " + orderIdParam + ": " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                } else {
-                    System.err.println("Failed to update order status to PAID: " + orderIdParam);
-                }
-            } else if (!"PAID".equalsIgnoreCase(currentStatus)) {
-                // If status is not PAID and not PENDING, update to PAID anyway (for safety)
-                System.out.println("Order status is '" + currentStatus + "', updating to PAID: " + orderIdParam);
-                boolean updated = orderDAO.updateStatus(orderIdParam, "PAID");
-                if (updated) {
-                    statusChangedToPaid = true;
-                    order = orderDAO.findOrderById(orderIdParam);
-                    
-                    // Reduce stock for this order
                     try {
                         boolean stockReduced = orderDAO.reduceStockForOrder(orderIdParam);
                         if (stockReduced) {
@@ -80,7 +52,7 @@
                     }
                 }
             }
-            // Note: If order is already PAID, we don't reduce stock again to avoid duplicate reductions
+            // If already PAID (e.g. notify ran first), claim does nothing — no second stock reduction
             
             // Get all related orders from session (stored during checkout)
             @SuppressWarnings("unchecked")
@@ -152,19 +124,19 @@
                         if (timeDiff < 300000) { // 5 minutes in milliseconds
                             String relatedStatus = relatedOrder.getStatus() != null ? relatedOrder.getStatus().trim() : "";
                             if (!"PAID".equalsIgnoreCase(relatedStatus)) {
-                                tempOrderDAO.updateStatus(relatedOrder.getOrderId(), "PAID");
-                                System.out.println("Updated related order to PAID: " + relatedOrder.getOrderId());
-                                
-                                // Reduce stock for related order
-                                try {
-                                    boolean stockReduced = tempOrderDAO.reduceStockForOrder(relatedOrder.getOrderId());
-                                    if (stockReduced) {
-                                        System.out.println("Stock reduced successfully for related order: " + relatedOrder.getOrderId());
-                                    } else {
-                                        System.err.println("Warning: Stock reduction failed for related order: " + relatedOrder.getOrderId());
+                                boolean relClaimed = tempOrderDAO.claimOrderPaidFromPending(relatedOrder.getOrderId(), null);
+                                if (relClaimed) {
+                                    System.out.println("Updated related order to PAID: " + relatedOrder.getOrderId());
+                                    try {
+                                        boolean stockReduced = tempOrderDAO.reduceStockForOrder(relatedOrder.getOrderId());
+                                        if (stockReduced) {
+                                            System.out.println("Stock reduced successfully for related order: " + relatedOrder.getOrderId());
+                                        } else {
+                                            System.err.println("Warning: Stock reduction failed for related order: " + relatedOrder.getOrderId());
+                                        }
+                                    } catch (Exception e) {
+                                        System.err.println("Error reducing stock for related order " + relatedOrder.getOrderId() + ": " + e.getMessage());
                                     }
-                                } catch (Exception e) {
-                                    System.err.println("Error reducing stock for related order " + relatedOrder.getOrderId() + ": " + e.getMessage());
                                 }
                             }
                         }

@@ -22,9 +22,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * UserOrdersServlet - Handles fetching orders for the logged-in user.
@@ -104,6 +107,24 @@ public class UserOrdersServlet extends HttpServlet {
                 }
             }
 
+            // One "Write Review" per product (duplicate order_item rows would duplicate buttons)
+            Map<String, List<OrderItem>> orderItemsForReviewMap = new HashMap<>();
+            for (Map.Entry<String, List<OrderItem>> entry : orderItemsMap.entrySet()) {
+                List<OrderItem> raw = entry.getValue();
+                if (raw == null || raw.isEmpty()) {
+                    orderItemsForReviewMap.put(entry.getKey(), new ArrayList<>());
+                    continue;
+                }
+                Set<Integer> seenProductIds = new HashSet<>();
+                List<OrderItem> deduped = new ArrayList<>();
+                for (OrderItem oi : raw) {
+                    if (seenProductIds.add(oi.getProductId())) {
+                        deduped.add(oi);
+                    }
+                }
+                orderItemsForReviewMap.put(entry.getKey(), deduped);
+            }
+
             // Build a map of orderId → delivery PIN for active delivery orders
             Map<String, String> deliveryPinMap = new HashMap<>();
             Map<String, Map<String, String>> storeDetailsMap = new HashMap<>();
@@ -167,6 +188,7 @@ public class UserOrdersServlet extends HttpServlet {
             // Set attributes for the JSP
             request.setAttribute("orders", orders);
             request.setAttribute("orderItemsMap", orderItemsMap);
+            request.setAttribute("orderItemsForReviewMap", orderItemsForReviewMap);
             request.setAttribute("productsMap", productsMap);
             request.setAttribute("deliveryPinMap", deliveryPinMap);
             request.setAttribute("storeDetailsMap", storeDetailsMap);
@@ -180,6 +202,7 @@ public class UserOrdersServlet extends HttpServlet {
             System.err.println("Error fetching user orders: " + e.getMessage());
             e.printStackTrace();
             request.setAttribute("error", "Failed to load orders");
+            request.setAttribute("orderItemsForReviewMap", new HashMap<String, List<OrderItem>>());
             request.getRequestDispatcher("/pages/dashboards/userdash/myPurchases.jsp").forward(request, response);
         }
     }

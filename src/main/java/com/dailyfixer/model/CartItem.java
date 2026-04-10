@@ -65,6 +65,10 @@ public class CartItem {
     public double getPrice() { return price; }
     public int getQuantity() { return quantity; }
     public String getImagePath() { return imagePath; }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
     /** @deprecated Use {@link #getImagePath()} instead. */
     @Deprecated
     public String getImageBase64() { return imagePath; }
