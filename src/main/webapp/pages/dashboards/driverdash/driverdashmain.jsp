@@ -270,11 +270,7 @@
             <div class="number" style="font-size: 1.3em;">LKR <%= String.format("%,.0f", totalEarnings) %></div>
             <div class="label">Total Earned</div>
         </div>
-        <div class="stat-card highlight">
-            <i class="ph ph-van stat-icon" style="color: var(--primary);"></i>
-            <div class="number"><%= vehicleCount %></div>
-            <div class="label">Registered Vehicles</div>
-        </div>
+
     </div>
 
     <!-- Middle Row -->
@@ -328,7 +324,7 @@
                             <i class="ph ph-check-square-offset"></i> Completed
                         </a>
                         <a href="${pageContext.request.contextPath}/pages/dashboards/driverdash/vehicleManagement.jsp" class="quick-link">
-                            <i class="ph ph-van"></i> My Vehicles
+                            <i class="ph ph-van"></i> My Vehicle
                         </a>
                     </div>
                 </div>

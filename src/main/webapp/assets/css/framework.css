@@ -600,6 +600,10 @@ table tr:hover {
 }
 
 .form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="password"],
+.form-group input[type="number"],
 .form-group input[type="file"],
 .form-group textarea {
   width: 100%;
@@ -614,6 +618,10 @@ table tr:hover {
 }
 
 .form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="tel"]:focus,
+.form-group input[type="password"]:focus,
+.form-group input[type="number"]:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: var(--ring);
