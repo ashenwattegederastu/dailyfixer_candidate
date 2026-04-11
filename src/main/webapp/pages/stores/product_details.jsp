@@ -867,7 +867,7 @@
                                                                                                             <div>
                                                                                                                 <div class="avg-rating-stars"
                                                                                                                     id="avgStarsDisplay">
-                                                                                                                    ☆☆☆☆☆
+                                                                                                                    ΓÿåΓÿåΓÿåΓÿåΓÿå
                                                                                                                 </div>
                                                                                                                 <div class="review-count-text"
                                                                                                                     id="reviewCountDisplay">
