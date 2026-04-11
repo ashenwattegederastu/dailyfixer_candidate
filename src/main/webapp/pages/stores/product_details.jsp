@@ -7,20 +7,42 @@
                         <%@ page import="java.util.Set" %>
                             <%@ page import="java.util.LinkedHashSet" %>
 
-                                <%! // Helper method to convert color name to hex code private String
-                                    getColorCode(String colorName) { if (colorName==null) return "#cccccc" ; String
-                                    color=colorName.toLowerCase().trim(); switch (color) { case "red" : return "#ff0000"
-                                    ; case "blue" : return "#0000ff" ; case "green" : return "#00ff00" ; case "yellow" :
-                                    return "#ffff00" ; case "black" : return "#000000" ; case "white" : return "#ffffff"
-                                    ; case "gray" : case "grey" : return "#808080" ; case "orange" : return "#ffa500" ;
-                                    case "purple" : return "#800080" ; case "pink" : return "#ffc0cb" ; case "brown" :
-                                    return "#a52a2a" ; case "navy" : return "#000080" ; case "teal" : return "#008080" ;
-                                    case "cyan" : return "#00ffff" ; case "magenta" : return "#ff00ff" ; case "lime" :
-                                    return "#00ff00" ; case "maroon" : return "#800000" ; case "olive" :
-                                    return "#808000" ; case "silver" : return "#c0c0c0" ; case "gold" : return "#ffd700"
-                                    ; default: // Try to parse as hex color if it starts with # if
-                                    (color.startsWith("#") && color.length()==7) { return color; } // Default gray for
-                                    unknown colors return "#cccccc" ; } } %>
+<%! 
+    // Helper method to convert color name to hex code
+    private String getColorCode(String colorName) { 
+        if (colorName == null) return "#cccccc"; 
+        String color = colorName.toLowerCase().trim(); 
+        switch (color) { 
+            case "red": return "#ff0000"; 
+            case "blue": return "#0000ff"; 
+            case "green": return "#00ff00"; 
+            case "yellow": return "#ffff00"; 
+            case "black": return "#000000"; 
+            case "white": return "#ffffff";
+            case "gray": case "grey": return "#808080"; 
+            case "orange": return "#ffa500"; 
+            case "purple": return "#800080"; 
+            case "pink": return "#ffc0cb"; 
+            case "brown": return "#a52a2a"; 
+            case "navy": return "#000080"; 
+            case "teal": return "#008080"; 
+            case "cyan": return "#00ffff"; 
+            case "magenta": return "#ff00ff"; 
+            case "lime": return "#00ff00"; 
+            case "maroon": return "#800000"; 
+            case "olive": return "#808000"; 
+            case "silver": return "#c0c0c0"; 
+            case "gold": return "#ffd700";
+            default: 
+                // Try to parse as hex color if it starts with #
+                if (color.startsWith("#") && color.length() == 7) { 
+                    return color; 
+                } 
+                // Default gray for unknown colors
+                return "#cccccc"; 
+        } 
+    } 
+%>
 
                                     <% User currentUser=(User) session.getAttribute("currentUser"); boolean
                                         isLoggedIn=Boolean.TRUE.equals(request.getAttribute("isLoggedIn")) ||
@@ -150,12 +172,7 @@
                                                                                                             pdImg=product.getImagePath();
                                                                                                             %>
                                                                                                             <img id="mainProductImage"
-                                                                                                                src="<%= pdImg != null && !pdImg.isEmpty() ? request.getContextPath() + "
-                                                                                                                /" +
-                                                                                                                pdImg :
-                                                                                                                request.getContextPath()
-                                                                                                                + "/assets/images/tools.png"
-                                                                                                                %>"
+                                                                                                                src="<%= pdImg != null && !pdImg.isEmpty() ? request.getContextPath() + "/" + pdImg : request.getContextPath() + "/assets/images/tools.png" %>"
                                                                                                             alt="<%=
                                                                                                                 product.getName()
                                                                                                                 %>"
@@ -194,17 +211,8 @@
                                                                                                                     !pdImg.isEmpty())
                                                                                                                     { %>
                                                                                                                     <div class="thumbnail-item active"
-                                                                                                                        data-src="<%= request.getContextPath() + "
-                                                                                                                        /"
-                                                                                                                        +
-                                                                                                                        pdImg
-                                                                                                                        %>
-                                                                                                                        ">
-                                                                                                                        <img src="<%= request.getContextPath() + "
-                                                                                                                            /"
-                                                                                                                            +
-                                                                                                                            pdImg
-                                                                                                                            %>"
+                                                                                                                        data-src="<%= request.getContextPath() + "/" + pdImg %>">
+                                                                                                                        <img src="<%= request.getContextPath() + "/" + pdImg %>"
                                                                                                                         alt="Main">
                                                                                                                     </div>
                                                                                                                     <% }
@@ -224,12 +232,7 @@
                                                                                                                                 {
                                                                                                                                 %>
                                                                                                                                 <div class="thumbnail-item"
-                                                                                                                                    data-src="<%= request.getContextPath() + "
-                                                                                                                                    /"
-                                                                                                                                    +
-                                                                                                                                    pv.getImagePath()
-                                                                                                                                    %>
-                                                                                                                                    "
+                                                                                                                                    data-src="<%= request.getContextPath() + "/" + pv.getImagePath() %>"
                                                                                                                                     data-variant-id="
                                                                                                                                     <%= pv.getVariantId()
                                                                                                                                         %>
@@ -269,11 +272,7 @@
                                                                                                                                                                         <% }
                                                                                                                                                                             %>
                                                                                                                                                                             ">
-                                                                                                                                                                            <img src="<%= request.getContextPath() + "
-                                                                                                                                                                                /"
-                                                                                                                                                                                +
-                                                                                                                                                                                pv.getImagePath()
-                                                                                                                                                                                %>"
+                                                                                                                                                                            <img src="<%= request.getContextPath() + "/" + pv.getImagePath() %>"
                                                                                                                                                                             alt="Variant">
                                                                                                                                 </div>
                                                                                                                                 <% }
@@ -288,10 +287,7 @@
                                                                                                 <div
                                                                                                     class="product-info-panel">
 
-                                                                                                    <div class="badge <%= outOfStock ? "
-                                                                                                        badge-out-stock"
-                                                                                                        : "badge-in-stock"
-                                                                                                        %>"
+                                                                                                    <div class="badge <%= outOfStock ? "badge-out-stock" : "badge-in-stock" %>"
                                                                                                         style="display:
                                                                                                         flex; gap: 5px;
                                                                                                         align-items:
@@ -340,9 +336,7 @@
                                                                                                         </div>
                                                                                                         <div class="price-details"
                                                                                                             id="priceDetails"
-                                                                                                            style="<%= (activeDiscount != null && activeDiscount.isValid()) ? "" : "
-                                                                                                            display:
-                                                                                                            none;" %>">
+                                                                                                            style="<%= (activeDiscount != null && activeDiscount.isValid()) ? "" : "display: none;" %>">
                                                                                                             <span
                                                                                                                 class="original-price"
                                                                                                                 id="originalPrice">Rs
