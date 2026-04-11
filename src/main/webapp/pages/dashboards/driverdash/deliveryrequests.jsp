@@ -62,13 +62,36 @@
     color: var(--foreground);
 }
 
+.content-wrapper {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 450px;
+    gap: 30px;
+    align-items: start;
+}
+.map-column {
+    position: sticky;
+    top: 100px;
+}
 #deliveryMap {
     width: 100%;
-    height: 380px;
+    height: calc(100vh - 130px);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
-    margin-bottom: 24px;
+}
+@media (max-width: 1100px) {
+    .content-wrapper {
+        display: flex;
+        flex-direction: column-reverse;
+    }
+    #deliveryMap {
+        height: 350px;
+        margin-bottom: 20px;
+    }
+    .map-column {
+        position: static;
+        width: 100%;
+    }
 }
 
 .warn-banner {
@@ -185,48 +208,54 @@
     </div>
     <% } else { %>
 
-    <div id="deliveryMap"></div>
+    <div class="content-wrapper">
+        <div class="requests-column">
+            <div class="toolbar">
+                <span style="font-size: 0.9em; color: var(--muted-foreground);">
+                    Showing <strong><%= nearbyAssignments.size() %></strong>
+                    delivery request<%= nearbyAssignments.size() != 1 ? "s" : "" %> within 10 km
+                </span>
+                <button class="refresh-btn" onclick="window.location.reload()">↻ Refresh</button>
+            </div>
 
-    <div class="toolbar">
-        <span style="font-size: 0.9em; color: var(--muted-foreground);">
-            Showing <strong><%= nearbyAssignments.size() %></strong>
-            delivery request<%= nearbyAssignments.size() != 1 ? "s" : "" %> within 10 km
-        </span>
-        <button class="refresh-btn" onclick="window.location.reload()">↻ Refresh</button>
-    </div>
+            <% if (nearbyAssignments.isEmpty()) { %>
+            <div class="card" style="text-align: center; color: var(--muted-foreground); padding: 40px;">
+                <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 8px;">No delivery requests nearby</p>
+                <p style="font-size: 0.9em;">Check back soon or refresh the page.</p>
+            </div>
+            <% } else {
+                for (DeliveryAssignment a : nearbyAssignments) {
+                    String customerName = a.getCustomerName() != null ? a.getCustomerName() : "—";
+                    String pickupAddr   = a.getPickupAddress() != null ? a.getPickupAddress() : a.getStoreName();
+                    String dropoffAddr  = a.getDeliveryAddress() != null ? a.getDeliveryAddress() : "—";
+                    String feeStr       = a.getDeliveryFeeEarned() != null
+                                          ? String.format("LKR %.2f", a.getDeliveryFeeEarned()) : "LKR 0.00";
+                    String distStr      = String.format("%.1f km", a.getDistanceKm());
+            %>
+            <div class="card" id="card-<%= a.getAssignmentId() %>">
+                <div class="card-header">
+                    <h3><%= a.getStoreName() %> → <%= customerName %></h3>
+                    <span class="fee-badge"><%= feeStr %></span>
+                </div>
+                <div class="details-grid">
+                    <p><strong>Order ID:</strong> <%= a.getOrderId() %></p>
+                    <p><strong>Vehicle Required:</strong> <%= a.getRequiredVehicleType() %></p>
+                    <p><strong>Distance to Store:</strong> <%= distStr %></p>
+                    <p><strong>Pickup:</strong> <%= pickupAddr %></p>
+                    <p><strong>Dropoff:</strong> <%= dropoffAddr %></p>
+                </div>
+                <button class="accept-btn" id="btn-<%= a.getAssignmentId() %>"
+                        onclick="acceptDelivery(<%= a.getAssignmentId() %>, this)">
+                    Accept Delivery
+                </button>
+            </div>
+            <% } } %>
+        </div>
 
-    <% if (nearbyAssignments.isEmpty()) { %>
-    <div class="card" style="text-align: center; color: var(--muted-foreground); padding: 40px;">
-        <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 8px;">No delivery requests nearby</p>
-        <p style="font-size: 0.9em;">Check back soon or refresh the page.</p>
-    </div>
-    <% } else {
-        for (DeliveryAssignment a : nearbyAssignments) {
-            String customerName = a.getCustomerName() != null ? a.getCustomerName() : "—";
-            String pickupAddr   = a.getPickupAddress() != null ? a.getPickupAddress() : a.getStoreName();
-            String dropoffAddr  = a.getDeliveryAddress() != null ? a.getDeliveryAddress() : "—";
-            String feeStr       = a.getDeliveryFeeEarned() != null
-                                  ? String.format("LKR %.2f", a.getDeliveryFeeEarned()) : "LKR 0.00";
-            String distStr      = String.format("%.1f km", a.getDistanceKm());
-    %>
-    <div class="card" id="card-<%= a.getAssignmentId() %>">
-        <div class="card-header">
-            <h3><%= a.getStoreName() %> → <%= customerName %></h3>
-            <span class="fee-badge"><%= feeStr %></span>
+        <div class="map-column">
+            <div id="deliveryMap"></div>
         </div>
-        <div class="details-grid">
-            <p><strong>Order ID:</strong> <%= a.getOrderId() %></p>
-            <p><strong>Vehicle Required:</strong> <%= a.getRequiredVehicleType() %></p>
-            <p><strong>Distance to Store:</strong> <%= distStr %></p>
-            <p><strong>Pickup:</strong> <%= pickupAddr %></p>
-            <p><strong>Dropoff:</strong> <%= dropoffAddr %></p>
-        </div>
-        <button class="accept-btn" id="btn-<%= a.getAssignmentId() %>"
-                onclick="acceptDelivery(<%= a.getAssignmentId() %>, this)">
-            Accept Delivery
-        </button>
     </div>
-    <% } } %>
 
     <% } // end hasLocation %>
 </main>
