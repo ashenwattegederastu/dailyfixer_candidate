@@ -1,8 +1,10 @@
 package com.dailyfixer.servlet.booking;
 
 import com.dailyfixer.dao.BookingDAO;
+import com.dailyfixer.dao.ClientNoShowPenaltyDAO;
 import com.dailyfixer.dao.RescheduleRequestDAO;
 import com.dailyfixer.model.Booking;
+import com.dailyfixer.model.ClientNoShowPenalty;
 import com.dailyfixer.model.RescheduleRequest;
 import com.dailyfixer.model.User;
 import jakarta.servlet.ServletException;
@@ -31,7 +33,7 @@ public class BookingCalendarServlet extends HttpServlet {
 
             // Load all active statuses the technician needs to see
             List<Booking> bookings = new ArrayList<>();
-            for (String status : new String[]{"ACCEPTED", "IN_PROGRESS", "TECHNICIAN_COMPLETED", "RESCHEDULE_PENDING", "NO_SHOW"}) {
+            for (String status : new String[]{"ACCEPTED", "IN_PROGRESS", "TECHNICIAN_COMPLETED", "RESCHEDULE_PENDING", "NO_SHOW", "CLIENT_NO_SHOW"}) {
                 bookings.addAll(bookingDAO.getBookingsByTechnicianAndStatus(currentUser.getUserId(), status));
             }
 
@@ -45,8 +47,14 @@ public class BookingCalendarServlet extends HttpServlet {
                 }
             }
 
+            // Load pending client penalty reviews for this technician
+            ClientNoShowPenaltyDAO penaltyDAO = new ClientNoShowPenaltyDAO();
+            List<ClientNoShowPenalty> pendingPenaltyReviews =
+                    penaltyDAO.getPendingReviewForTechnician(currentUser.getUserId());
+
             request.setAttribute("bookings", bookings);
             request.setAttribute("pendingReschedules", pendingReschedules);
+            request.setAttribute("pendingPenaltyReviews", pendingPenaltyReviews);
             request.getRequestDispatcher("/pages/dashboards/techniciandash/booking-calendar.jsp").forward(request, response);
             
         } catch (Exception e) {

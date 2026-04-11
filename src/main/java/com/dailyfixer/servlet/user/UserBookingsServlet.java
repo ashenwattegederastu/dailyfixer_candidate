@@ -2,8 +2,10 @@ package com.dailyfixer.servlet.user;
 
 import com.dailyfixer.dao.BookingDAO;
 import com.dailyfixer.dao.BookingRatingDAO;
+import com.dailyfixer.dao.ClientNoShowPenaltyDAO;
 import com.dailyfixer.dao.RescheduleRequestDAO;
 import com.dailyfixer.model.Booking;
+import com.dailyfixer.model.ClientNoShowPenalty;
 import com.dailyfixer.model.RescheduleRequest;
 import com.dailyfixer.model.User;
 import jakarta.servlet.ServletException;
@@ -59,7 +61,7 @@ public class UserBookingsServlet extends HttpServlet {
                 case "/active":
                     bookings = bookingDAO.getBookingsByUserAndStatuses(userId,
                             "REQUESTED", "ACCEPTED", "IN_PROGRESS", "TECHNICIAN_COMPLETED",
-                            "RESCHEDULE_PENDING", "NO_SHOW");
+                            "RESCHEDULE_PENDING", "NO_SHOW", "CLIENT_NO_SHOW");
 
                     // For recurring contracts, show only the next upcoming booking per contract.
                     // Non-recurring bookings are shown as-is.
@@ -90,8 +92,19 @@ public class UserBookingsServlet extends HttpServlet {
                         }
                     }
 
+                    // Load client no-show penalty data keyed by bookingId
+                    ClientNoShowPenaltyDAO penaltyDAO = new ClientNoShowPenaltyDAO();
+                    Map<Integer, ClientNoShowPenalty> clientPenalties = new HashMap<>();
+                    for (Booking b : displayed) {
+                        if ("CLIENT_NO_SHOW".equals(b.getStatus())) {
+                            ClientNoShowPenalty penalty = penaltyDAO.getByBookingId(b.getBookingId());
+                            if (penalty != null) clientPenalties.put(b.getBookingId(), penalty);
+                        }
+                    }
+
                     request.setAttribute("activeBookings", displayed);
                     request.setAttribute("pendingReschedules", pendingReschedules);
+                    request.setAttribute("clientPenalties", clientPenalties);
                     targetJsp = "/pages/dashboards/userdash/activeBookings.jsp";
                     break;
                 case "/completed":

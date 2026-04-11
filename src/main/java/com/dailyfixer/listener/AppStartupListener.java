@@ -1,6 +1,7 @@
 package com.dailyfixer.listener;
 
 import com.dailyfixer.job.BookingNoShowJob;
+import com.dailyfixer.job.ClientPenaltyEscalationJob;
 import com.dailyfixer.job.DeliveryTimeoutJob;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -26,11 +27,14 @@ public class AppStartupListener implements ServletContextListener {
     /** How often the booking no-show / auto-reject check runs (minutes). */
     private static final int BOOKING_CHECK_INTERVAL_MINUTES = 2;
 
+    /** How often the client penalty escalation check runs (minutes). */
+    private static final int PENALTY_ESCALATION_INTERVAL_MINUTES = 30;
+
     private ScheduledExecutorService scheduler;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        scheduler = Executors.newScheduledThreadPool(2, r -> {
+        scheduler = Executors.newScheduledThreadPool(3, r -> {
             Thread t = new Thread(r, "dailyfixer-job");
             t.setDaemon(true); // Don't prevent JVM shutdown
             return t;
@@ -54,6 +58,15 @@ public class AppStartupListener implements ServletContextListener {
         );
         System.out.println("[AppStartupListener] BookingNoShowJob scheduled — runs every "
                 + BOOKING_CHECK_INTERVAL_MINUTES + " minutes.");
+
+        scheduler.scheduleAtFixedRate(
+                new ClientPenaltyEscalationJob(),
+                10,
+                PENALTY_ESCALATION_INTERVAL_MINUTES,
+                TimeUnit.MINUTES
+        );
+        System.out.println("[AppStartupListener] ClientPenaltyEscalationJob scheduled — runs every "
+                + PENALTY_ESCALATION_INTERVAL_MINUTES + " minutes.");
     }
 
     @Override

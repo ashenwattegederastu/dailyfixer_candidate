@@ -1,6 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-    <%@ taglib uri="jakarta.tags.core" prefix="c" %>
-        <!DOCTYPE html>
+<%@ page import="com.dailyfixer.model.ClientNoShowPenalty, java.util.List" %>
+<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
+<%@ taglib uri="jakarta.tags.functions" prefix="fn" %>
+<!DOCTYPE html>
         <html lang="en">
 
         <head>
@@ -458,6 +461,98 @@
                     border: 1px solid var(--border);
                 }
 
+                /* ── Client No-Show ────────────────────────────── */
+                .status-badge.client-no-show {
+                    background: #fce7f3;
+                    color: #9d174d;
+                }
+
+                .cal-booking-pill.client-no-show {
+                    background: #9d174d;
+                    color: white;
+                }
+
+                .btn-client-no-show {
+                    background: #9d174d;
+                    color: white;
+                }
+
+                /* Penalty review card */
+                .penalty-review-section {
+                    background: var(--card);
+                    border: 1px solid #fca5a5;
+                    border-radius: var(--radius);
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
+                    box-shadow: var(--shadow-sm);
+                }
+
+                .penalty-review-section h2 {
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: #991b1b;
+                    margin: 0 0 1rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .penalty-review-card {
+                    background: #fff1f2;
+                    border: 1px solid #fca5a5;
+                    border-radius: var(--radius-md);
+                    padding: 1rem 1.25rem;
+                    margin-bottom: 0.75rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    gap: 0.75rem;
+                }
+
+                .penalty-review-card:last-child { margin-bottom: 0; }
+
+                .penalty-review-info { flex: 1; min-width: 200px; }
+                .penalty-review-info strong { color: var(--foreground); font-size: 0.95rem; }
+                .penalty-review-info small  { color: var(--muted-foreground); font-size: 0.82rem; display: block; margin-top: 2px; }
+
+                .penalty-review-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+                .btn-confirm-paid {
+                    padding: 7px 14px;
+                    background: linear-gradient(135deg, #28a745, #20c997);
+                    color: #fff;
+                    border: none;
+                    border-radius: var(--radius-md);
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    cursor: pointer;
+                }
+
+                .btn-dispute-paid {
+                    padding: 7px 14px;
+                    background: var(--destructive);
+                    color: var(--destructive-foreground);
+                    border: none;
+                    border-radius: var(--radius-md);
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    cursor: pointer;
+                }
+
+                .btn-view-proof {
+                    padding: 7px 14px;
+                    background: var(--secondary);
+                    color: var(--secondary-foreground);
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius-md);
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    cursor: pointer;
+                    text-decoration: none;
+                    display: inline-block;
+                }
+
                 /* ── Recurring Contract Group (list view) ─────── */
                 .recurring-contract-card {
                     border-left: 4px solid var(--primary);
@@ -559,6 +654,48 @@
                 <c:if test="${param.limitReached}">
                     <div class="alert-banner warning">&#9888; Daily booking limit reached for <strong>${param.date}</strong>. You cannot accept more bookings on that day.</div>
                 </c:if>
+                <c:if test="${param.clientNoShow}">
+                    <div class="alert-banner success">Client not home recorded. The client has been notified and a Rs. 2,500 penalty has been applied.</div>
+                </c:if>
+                <c:if test="${param.penaltyConfirmed}">
+                    <div class="alert-banner success">Payment confirmed. The no-show penalty for this booking is now resolved.</div>
+                </c:if>
+                <c:if test="${param.penaltyDisputed}">
+                    <div class="alert-banner warning">Payment disputed. The case has been escalated to admin for review.</div>
+                </c:if>
+
+                <!-- ════════ PENDING CLIENT PENALTY REVIEWS ════════ -->
+                <c:if test="${not empty pendingPenaltyReviews}">
+                <div class="penalty-review-section">
+                    <h2>&#9888; Pending Client Payment Reviews (${fn:length(pendingPenaltyReviews)})</h2>
+                    <p style="color:var(--muted-foreground);font-size:0.875rem;margin:-0.5rem 0 1rem;">
+                        The following clients have uploaded payment proof for no-show penalties. You must confirm or dispute within 48 hours, after which the case auto-escalates to admin.
+                    </p>
+                    <c:forEach var="pr" items="${pendingPenaltyReviews}">
+                    <div class="penalty-review-card">
+                        <div class="penalty-review-info">
+                            <strong>${pr.clientName} &mdash; ${pr.serviceName}</strong>
+                            <small>Booking #${pr.bookingId} &bull; Date: ${pr.bookingDate} &bull; Penalty: Rs. 2,500</small>
+                            <small>Proof uploaded: <fmt:formatDate value="${pr.proofUploadedAt}" pattern="dd MMM yyyy, HH:mm"/></small>
+                        </div>
+                        <div class="penalty-review-actions">
+                            <a href="${pageContext.request.contextPath}/${pr.proofPath}"
+                               target="_blank" class="btn-view-proof">View Proof</a>
+                            <form method="post" action="${pageContext.request.contextPath}/technician/client-penalty/review" style="display:inline;">
+                                <input type="hidden" name="penaltyId" value="${pr.penaltyId}">
+                                <input type="hidden" name="action" value="confirm">
+                                <button type="submit" class="btn-confirm-paid">Confirm Paid</button>
+                            </form>
+                            <form method="post" action="${pageContext.request.contextPath}/technician/client-penalty/review" style="display:inline;">
+                                <input type="hidden" name="penaltyId" value="${pr.penaltyId}">
+                                <input type="hidden" name="action" value="dispute">
+                                <button type="submit" class="btn-dispute-paid">Mark Not Paid</button>
+                            </form>
+                        </div>
+                    </div>
+                    </c:forEach>
+                </div>
+                </c:if>
 
                 <!-- Empty state -->
                 <c:if test="${empty bookings}">
@@ -586,7 +723,40 @@
                 </div>
             </div>
 
-            <!-- ════════════ CANCEL MODAL ════════════ -->
+            <!-- ════════════ CLIENT NOT HOME MODAL ════════════ -->
+            <div id="clientNoShowModal" class="modal-overlay">
+                <div class="modal-content" style="max-width:460px;">
+                    <h3 style="color:#9d174d;">&#9888; Mark Client Not Home</h3>
+                    <p style="color:var(--muted-foreground);font-size:0.9rem;margin-bottom:1.25rem;">
+                        You are about to record that the client was not available at the scheduled location.
+                        A <strong>Rs. 2,500 no-show penalty</strong> will be applied to the client's account.
+                        This action cannot be undone.
+                    </p>
+                    <form id="clientNoShowForm" method="post"
+                          action="${pageContext.request.contextPath}/bookings/client-no-show"
+                          enctype="multipart/form-data">
+                        <input type="hidden" name="bookingId" id="clientNoShowBookingId">
+                        <div style="margin-bottom:1rem;">
+                            <label style="display:block;margin-bottom:0.4rem;font-weight:600;color:var(--foreground);">Arrival Proof Photo (JPG or PNG, max 5 MB) *</label>
+                            <p style="font-size:0.82rem;color:var(--muted-foreground);margin:0 0 0.5rem;">Upload a photo showing the client's door / location to confirm you arrived.</p>
+                            <input type="file" name="techProofFile" id="techProofFileInput"
+                                   accept="image/jpeg,image/png" required
+                                   style="width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--input);color:var(--foreground);font-family:var(--font-sans);">
+                            <div id="techProofFileError" style="color:#dc2626;font-size:0.8em;margin-top:0.3rem;display:none;"></div>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button type="submit"
+                                style="flex:1;background:#9d174d;color:white;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:700;cursor:pointer;font-family:var(--font-sans);">
+                                Confirm – Client Not Home
+                            </button>
+                            <button type="button" onclick="closeClientNoShowModal()"
+                                style="flex:1;background:var(--secondary);color:var(--secondary-foreground);padding:0.75rem;border:1px solid var(--border);border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <div id="cancelModal" class="modal-overlay">
                 <div class="modal-content">
                     <h3>Cancel Booking</h3>
@@ -687,7 +857,8 @@
                         lng: "${booking.locationLongitude}",
                         recurring: ${not empty booking.recurringContractId ? 'true' : 'false'},
                         recurringSeq: ${not empty booking.recurringSequence ? booking.recurringSequence : 0},
-                        contractId: ${not empty booking.recurringContractId ? booking.recurringContractId : 0}
+                        contractId: ${not empty booking.recurringContractId ? booking.recurringContractId : 0},
+                        updatedAt: ${not empty booking.updatedAt ? booking.updatedAt.time : 0}
             }<c:if test="${!loop.last}">,</c:if>
                     </c:forEach>
                 ];
@@ -805,6 +976,7 @@
                                 case 'IN_PROGRESS': pillClass += 'in-progress'; break;
                                 case 'RESCHEDULE_PENDING': pillClass += 'reschedule-pending'; break;
                                 case 'NO_SHOW': pillClass += 'no-show'; break;
+                                case 'CLIENT_NO_SHOW': pillClass += 'client-no-show'; break;
                                 default: pillClass += 'awaiting';
                             }
                             pill.className = pillClass;
@@ -874,6 +1046,9 @@
                         case 'NO_SHOW':
                             badgeEl.innerHTML = '<span class="status-badge no-show">NO SHOW</span>';
                             break;
+                        case 'CLIENT_NO_SHOW':
+                            badgeEl.innerHTML = '<span class="status-badge client-no-show">CLIENT NOT HOME</span>';
+                            break;
                         default:
                             badgeEl.innerHTML = '<span class="status-badge awaiting">' + b.status + '</span>';
                     }
@@ -918,6 +1093,7 @@
                             openRescheduleModal(b.id);
                         };
                         actions.appendChild(reschedBtn);
+
                     } else if (b.status === 'IN_PROGRESS') {
                         var completeForm = document.createElement('form');
                         completeForm.method = 'post';
@@ -929,6 +1105,33 @@
                             '<input type="hidden" name="completionType" value="technician">' +
                             '<button type="submit" class="btn-complete" style="width:100%">Mark as Complete</button>';
                         actions.appendChild(completeForm);
+
+                        var cnsBtn2 = document.createElement('button');
+                        cnsBtn2.className = 'btn-client-no-show';
+                        cnsBtn2.style.cssText = 'flex:1;min-width:150px;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);';
+                        var elapsed2 = b.updatedAt ? (Date.now() - b.updatedAt) : Infinity;
+                        var tenMin = 10 * 60 * 1000;
+                        if (elapsed2 >= tenMin) {
+                            cnsBtn2.textContent = 'Client Not Home';
+                            cnsBtn2.onclick = function () {
+                                closeDetailModal();
+                                openClientNoShowModal(b.id);
+                            };
+                        } else {
+                            var remainMin2 = Math.ceil((tenMin - elapsed2) / 60000);
+                            cnsBtn2.textContent = 'Client Not Home (in ' + remainMin2 + ' min)';
+                            cnsBtn2.disabled = true;
+                            cnsBtn2.title = 'Available 10 minutes after marking In Progress';
+                            cnsBtn2.style.cssText += 'opacity:0.45;cursor:not-allowed;';
+                        }
+                        actions.appendChild(cnsBtn2);
+
+                        // Auto-refresh countdown if still waiting
+                        if (elapsed2 < tenMin) {
+                            setTimeout(function () {
+                                // Re-open the modal with fresh data when timer expires
+                            }, tenMin - elapsed2);
+                        }
                     } else if (b.status === 'RESCHEDULE_PENDING') {
                         var pr = pendingReschedules[b.id];
                         if (pr) {
@@ -1002,6 +1205,41 @@
                     document.getElementById('rescheduleModal').style.display = 'none';
                 }
 
+                /* ── Client No-Show Modal ─────────────────────── */
+                function openClientNoShowModal(bookingId) {
+                    document.getElementById('clientNoShowBookingId').value = bookingId;
+                    document.getElementById('clientNoShowModal').style.display = 'flex';
+                }
+
+                function closeClientNoShowModal() {
+                    document.getElementById('clientNoShowModal').style.display = 'none';
+                }
+
+                document.getElementById('clientNoShowForm').addEventListener('submit', function (e) {
+                    var fileInput = document.getElementById('techProofFileInput');
+                    var errDiv   = document.getElementById('techProofFileError');
+                    errDiv.style.display = 'none';
+                    errDiv.textContent   = '';
+                    if (!fileInput.files || fileInput.files.length === 0) {
+                        e.preventDefault();
+                        errDiv.textContent = 'Please select an arrival proof photo.';
+                        errDiv.style.display = 'block';
+                        return;
+                    }
+                    var file = fileInput.files[0];
+                    if (file.size > 5 * 1024 * 1024) {
+                        e.preventDefault();
+                        errDiv.textContent = 'File is too large. Maximum size is 5 MB.';
+                        errDiv.style.display = 'block';
+                        return;
+                    }
+                    if (['image/jpeg', 'image/png'].indexOf(file.type) === -1) {
+                        e.preventDefault();
+                        errDiv.textContent = 'Only JPG and PNG images are allowed.';
+                        errDiv.style.display = 'block';
+                    }
+                });
+
                 /* Close modals on overlay click */
                 document.getElementById('cancelModal').addEventListener('click', function (e) {
                     if (e.target === this) closeCancelModal();
@@ -1011,6 +1249,9 @@
                 });
                 document.getElementById('rescheduleModal').addEventListener('click', function (e) {
                     if (e.target === this) closeRescheduleModal();
+                });
+                document.getElementById('clientNoShowModal').addEventListener('click', function (e) {
+                    if (e.target === this) closeClientNoShowModal();
                 });
 
                 /* ── List view rendering with recurring grouping ── */
@@ -1062,6 +1303,7 @@
                             case 'IN_PROGRESS': return '<span class="status-badge in-progress">IN PROGRESS</span>';
                             case 'RESCHEDULE_PENDING': return '<span class="status-badge reschedule-pending">RESCHEDULE PENDING</span>';
                             case 'NO_SHOW': return '<span class="status-badge no-show">NO SHOW</span>';
+                            case 'CLIENT_NO_SHOW': return '<span class="status-badge client-no-show">CLIENT NOT HOME</span>';
                             case 'TECHNICIAN_COMPLETED': return '<span class="status-badge" style="background:#e0e7ff;color:#3730a3;">AWAITING USER CONFIRM</span>';
                             default: return '<span class="status-badge awaiting">' + status + '</span>';
                         }
@@ -1069,6 +1311,7 @@
 
                     function buildActionsHtml(b) {
                         var html = '<a href="' + contextPath + '/chats/view?chatId=' + b.id + '" class="btn-chat">Open Chat</a>';
+                        var tenMin = 10 * 60 * 1000;
                         if (b.status === 'ACCEPTED') {
                             html += '<form method="post" action="' + contextPath + '/bookings/complete" style="flex:1;min-width:150px;">'
                                 + '<input type="hidden" name="bookingId" value="' + b.id + '">'
@@ -1082,7 +1325,13 @@
                                 + '<input type="hidden" name="completionType" value="technician">'
                                 + '<button type="submit" class="btn-complete" style="width:100%;">Mark as Complete</button>'
                                 + '</form>';
-                        } else if (b.status === 'RESCHEDULE_PENDING') {
+                            var elapsed = b.updatedAt ? (Date.now() - b.updatedAt) : Infinity;
+                            if (elapsed >= tenMin) {
+                                html += '<button onclick="openClientNoShowModal(' + b.id + ')" class="btn-client-no-show" style="flex:1;min-width:150px;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">Client Not Home</button>';
+                            } else {
+                                var remainMin = Math.ceil((tenMin - elapsed) / 60000);
+                                html += '<button disabled class="btn-client-no-show" style="flex:1;min-width:150px;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;font-family:var(--font-sans);opacity:0.45;cursor:not-allowed;" title="Available 10 minutes after marking In Progress">Client Not Home (in ' + remainMin + ' min)</button>';
+                            }
                             var pr = pendingReschedules[b.id];
                             if (pr) {
                                 if (pr.requestedBy === currentUserId) {
@@ -1107,7 +1356,7 @@
                                 }
                             }
                         }
-                        if (b.status !== 'NO_SHOW' && b.status !== 'TECHNICIAN_COMPLETED') {
+                        if (b.status !== 'NO_SHOW' && b.status !== 'TECHNICIAN_COMPLETED' && b.status !== 'CLIENT_NO_SHOW') {
                             html += '<button onclick="showCancelModal(' + b.id + ')" class="btn-cancel-booking">Cancel Booking</button>';
                         }
                         return html;

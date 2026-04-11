@@ -3,6 +3,7 @@
 <%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
 <%@ taglib uri="jakarta.tags.functions" prefix="fn" %>
 <%@ page import="com.dailyfixer.model.User" %>
+<%@ page import="com.dailyfixer.model.ClientNoShowPenalty" %>
 
 <% User user=(User) session.getAttribute("currentUser"); if (user==null || user.getRole()==null ||
         !"user".equalsIgnoreCase(user.getRole().trim())) {
@@ -22,8 +23,24 @@
         .alert-banner { padding: 0.9rem 1.2rem; border-radius: 0.5rem; margin-bottom: 1rem; font-weight: 500; }
         .alert-banner.success { background: #10b981; color: white; }
         .alert-banner.warning { background: #f59e0b; color: white; }
+        .alert-banner.error   { background: #ef4444; color: white; }
         .reschedule-info { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 0.4rem; padding: 0.55rem 0.85rem; font-size: 0.82rem; margin-top: 0.4rem; color: #92400e; }
         .reschedule-info strong { color: #78350f; }
+        /* Client no-show penalty styles */
+        .penalty-info { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 0.4rem; padding: 0.55rem 0.85rem; font-size: 0.82rem; margin-top: 0.4rem; color: #991b1b; }
+        .penalty-info strong { color: #7f1d1d; }
+        .btn-pay-penalty {
+            padding: 5px 12px;
+            font-size: 0.82em;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+        }
+        .btn-pay-penalty:hover { opacity: 0.9; }
     </style>
 </head>
 
@@ -45,6 +62,12 @@
     </c:if>
     <c:if test="${param.rescheduleRejected}">
         <div class="alert-banner warning">Reschedule request rejected. Your booking continues at the original time.</div>
+    </c:if>
+    <c:if test="${param.penaltyProofSubmitted}">
+        <div class="alert-banner success">Payment proof submitted. Your technician will review it within 48 hours.</div>
+    </c:if>
+    <c:if test="${param.penaltyError}">
+        <div class="alert-banner error">Could not submit payment proof. Please try again.</div>
     </c:if>
 
     <div class="section">
@@ -105,6 +128,31 @@
                                         </c:when>
                                         <c:when test="${b.status eq 'NO_SHOW'}">
                                             <span class="status-badge" style="background:#fee2e2;color:#991b1b;">No Show</span>
+                                        </c:when>
+                                        <c:when test="${b.status eq 'CLIENT_NO_SHOW'}">
+                                            <span class="status-badge" style="background:#fce7f3;color:#9d174d;">Client Not Home</span>
+                                            <c:set var="cp" value="${clientPenalties[b.bookingId]}"/>
+                                            <c:if test="${not empty cp}">
+                                                <div class="penalty-info">
+                                                    Penalty: <strong>Rs. 2,500</strong>
+                                                    <c:choose>
+                                                        <c:when test="${cp.status eq 'PENDING'}">&mdash; Awaiting payment</c:when>
+                                                        <c:when test="${cp.status eq 'PROOF_UPLOADED'}">&mdash; Proof submitted, awaiting review</c:when>
+                                                        <c:when test="${cp.status eq 'ADMIN_REVIEW'}">&mdash; Under admin review</c:when>
+                                                        <c:when test="${cp.status eq 'CONFIRMED_PAID'}">&mdash; <span style="color:#065f46;font-weight:700;">Paid &#10003;</span></c:when>
+                                                        <c:when test="${cp.status eq 'RESOLVED'}">&mdash; <span style="color:#065f46;font-weight:700;">Resolved</span></c:when>
+                                                        <c:when test="${cp.status eq 'FRAUD_SUSPENDED'}">&mdash; <span style="color:#7f1d1d;">Account suspended</span></c:when>
+                                                    </c:choose>
+                                                </div>
+                                                <c:if test="${not empty cp.techProofPath}">
+                                                    <div class="penalty-info" style="margin-top:0.4rem;background:#fff1f2;border-color:#fca5a5;">
+                                                        <a href="${pageContext.request.contextPath}/${cp.techProofPath}" target="_blank"
+                                                           style="color:#7f1d1d;font-weight:600;text-decoration:underline;font-size:0.85em;">
+                                                            View Technician Arrival Proof
+                                                        </a>
+                                                    </div>
+                                                </c:if>
+                                            </c:if>
                                         </c:when>
                                         <c:when test="${b.status eq 'TECHNICIAN_COMPLETED'}">
                                             <span class="status-badge" style="background:#e0e7ff;color:#3730a3;">Awaiting Confirmation</span>
@@ -175,6 +223,21 @@
                                         <c:if test="${b.status eq 'NO_SHOW'}">
                                             <span style="font-size:0.78rem;color:#991b1b;font-weight:600;">Technician did not show up.</span>
                                         </c:if>
+
+                                        <%-- CLIENT_NO_SHOW: Pay Penalty button --%>
+                                        <c:if test="${b.status eq 'CLIENT_NO_SHOW'}">
+                                            <c:set var="cp" value="${clientPenalties[b.bookingId]}"/>
+                                            <c:if test="${not empty cp and cp.status eq 'PENDING'}">
+                                                <button class="btn-pay-penalty"
+                                                        onclick="openPayPenaltyModal(${cp.penaltyId})">Pay Penalty</button>
+                                            </c:if>
+                                            <c:if test="${not empty cp and cp.status eq 'PROOF_UPLOADED'}">
+                                                <span style="font-size:0.78rem;color:#9d174d;font-weight:600;">Awaiting technician review.</span>
+                                            </c:if>
+                                            <c:if test="${not empty cp and cp.status eq 'ADMIN_REVIEW'}">
+                                                <span style="font-size:0.78rem;color:#92400e;font-weight:600;">Under admin review.</span>
+                                            </c:if>
+                                        </c:if>
                                     </div>
                                 </td>
                             </tr>
@@ -186,6 +249,35 @@
         </div>
     </div>
 </main>
+
+<!-- Pay Penalty Modal -->
+<div id="payPenaltyModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--card);padding:2rem;border-radius:0.75rem;max-width:500px;width:90%;border:1px solid var(--border);">
+        <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;color:var(--foreground);">Pay No-Show Penalty</h3>
+        <p style="color:var(--muted-foreground);font-size:0.88em;margin-bottom:1rem;line-height:1.6;">
+            A <strong style="color:#991b1b;">Rs. 2,500</strong> penalty has been issued because the technician arrived but you were not available.
+            Please transfer the amount and upload proof of payment below.
+        </p>
+        <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:0.4rem;padding:0.75rem 1rem;font-size:0.85em;color:#92400e;margin-bottom:1.2rem;">
+            <strong>Payment Instructions:</strong> Transfer Rs. 2,500 to the Daily Fixer account and upload a screenshot or photo of the payment confirmation.
+        </div>
+        <form id="payPenaltyForm" method="post"
+              action="${pageContext.request.contextPath}/client/penalty/upload-proof"
+              enctype="multipart/form-data">
+            <input type="hidden" name="penaltyId" id="payPenaltyId">
+            <div style="margin-bottom:1rem;">
+                <label style="display:block;margin-bottom:0.4rem;font-weight:600;color:var(--foreground);">Payment Proof (JPG or PNG, max 2 MB) *</label>
+                <input type="file" name="proofFile" id="proofImageInput" accept="image/jpeg,image/png" required
+                       style="width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:0.4rem;background:var(--input);color:var(--foreground);font-family:inherit;">
+                <div id="proofFileError" style="color:#dc2626;font-size:0.8em;margin-top:0.3rem;display:none;"></div>
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+                <button type="submit" style="flex:1;padding:0.7rem;background:#ef4444;color:white;border:none;border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Submit Proof</button>
+                <button type="button" onclick="closePayPenaltyModal()" style="flex:1;padding:0.7rem;background:var(--secondary);color:var(--secondary-foreground);border:1px solid var(--border);border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Reschedule Request Modal -->
 <div id="rescheduleModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
@@ -215,6 +307,43 @@
 </div>
 
 <script>
+    function openPayPenaltyModal(penaltyId) {
+        document.getElementById('payPenaltyId').value = penaltyId;
+        document.getElementById('proofFileError').style.display = 'none';
+        document.getElementById('proofImageInput').value = '';
+        document.getElementById('payPenaltyModal').style.display = 'flex';
+    }
+    function closePayPenaltyModal() {
+        document.getElementById('payPenaltyModal').style.display = 'none';
+    }
+    document.getElementById('payPenaltyModal').addEventListener('click', function(e) {
+        if (e.target === this) closePayPenaltyModal();
+    });
+    document.getElementById('payPenaltyForm').addEventListener('submit', function(e) {
+        var fileInput = document.getElementById('proofImageInput');
+        var errDiv = document.getElementById('proofFileError');
+        errDiv.style.display = 'none';
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            errDiv.textContent = 'Please select a file.';
+            errDiv.style.display = 'block';
+            return;
+        }
+        var file = fileInput.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+            e.preventDefault();
+            errDiv.textContent = 'File must be under 2 MB.';
+            errDiv.style.display = 'block';
+            return;
+        }
+        var allowed = ['image/jpeg', 'image/png'];
+        if (allowed.indexOf(file.type) === -1) {
+            e.preventDefault();
+            errDiv.textContent = 'Only JPG and PNG files are allowed.';
+            errDiv.style.display = 'block';
+        }
+    });
+
     function openRescheduleModal(bookingId) {
         document.getElementById('rescheduleBookingId').value = bookingId;
         document.getElementById('rescheduleModal').style.display = 'flex';

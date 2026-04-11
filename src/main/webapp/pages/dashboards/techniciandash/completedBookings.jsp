@@ -40,6 +40,18 @@
                                 </div>
                             </c:if>
 
+                            <c:if test="${param.penaltyConfirmed}">
+                                <div style="padding:1rem; border-radius:8px; margin-bottom:1rem; background:#d1fae5; color:#065f46; font-weight:500;">
+                                    Payment confirmed — the no-show penalty is resolved and the booking is now marked completed.
+                                </div>
+                            </c:if>
+
+                            <c:if test="${param.penaltyDisputed}">
+                                <div style="padding:1rem; border-radius:8px; margin-bottom:1rem; background:#fef3c7; color:#92400e; font-weight:500;">
+                                    Payment disputed — the case has been escalated to an admin for review.
+                                </div>
+                            </c:if>
+
                             <div class="section">
                                 <div class="table-container">
                                     <c:choose>
@@ -89,6 +101,23 @@
                                                                             style="background: #e0e7ff; color: #3730a3;">Awaiting
                                                                             User Confirm</span>
                                                                     </c:when>
+                                                                    <c:when test="${b.status eq 'CLIENT_NO_SHOW'}">
+                                                                        <c:set var="cp" value="${clientNoShowPenalties[b.bookingId]}"/>
+                                                                        <span class="status-badge" style="background:#fce7f3;color:#9d174d;">Client Not Home</span>
+                                                                        <c:if test="${not empty cp}">
+                                                                            <div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-foreground);">
+                                                                                Penalty:
+                                                                                <c:choose>
+                                                                                    <c:when test="${cp.status eq 'PENDING'}"><strong style="color:#92400e;">Awaiting client payment</strong></c:when>
+                                                                                    <c:when test="${cp.status eq 'PROOF_UPLOADED'}"><strong style="color:#1d4ed8;">Receipt uploaded — action required</strong></c:when>
+                                                                                    <c:when test="${cp.status eq 'CONFIRMED_PAID'}"><strong style="color:#065f46;">Confirmed paid &#10003;</strong></c:when>
+                                                                                    <c:when test="${cp.status eq 'ADMIN_REVIEW'}"><strong style="color:#7c3aed;">Disputed — under admin review</strong></c:when>
+                                                                                    <c:when test="${cp.status eq 'RESOLVED'}"><strong style="color:#065f46;">Resolved by admin &#10003;</strong></c:when>
+                                                                                    <c:when test="${cp.status eq 'FRAUD_SUSPENDED'}"><strong style="color:#7f1d1d;">Fraud — client suspended</strong></c:when>
+                                                                                </c:choose>
+                                                                            </div>
+                                                                        </c:if>
+                                                                    </c:when>
                                                                 </c:choose>
                                                             </td>
                                                             <td>
@@ -101,6 +130,36 @@
                                                                     </c:when>
                                                                     <c:when test="${b.status eq 'FULLY_COMPLETED'}">
                                                                         <span style="font-size:0.8rem; color:var(--muted-foreground);">Rated &#10003;</span>
+                                                                    </c:when>
+                                                                    <c:when test="${b.status eq 'CLIENT_NO_SHOW'}">
+                                                                        <c:set var="cp" value="${clientNoShowPenalties[b.bookingId]}"/>
+                                                                        <c:choose>
+                                                                            <c:when test="${not empty cp and cp.status eq 'PROOF_UPLOADED'}">
+                                                                                <%-- Technician can view receipt and take action --%>
+                                                                                <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                                                                                    <a href="${pageContext.request.contextPath}/${cp.proofPath}" target="_blank"
+                                                                                       style="background:#4f46e5;color:white;padding:0.35rem 0.8rem;border-radius:4px;font-size:0.8rem;font-weight:600;text-decoration:none;text-align:center;">View Receipt</a>
+                                                                                    <div style="display:flex;gap:0.4rem;">
+                                                                                        <form method="post" action="${pageContext.request.contextPath}/technician/client-penalty/review" style="flex:1;">
+                                                                                            <input type="hidden" name="penaltyId" value="${cp.penaltyId}">
+                                                                                            <input type="hidden" name="action" value="confirm">
+                                                                                            <button type="submit" style="width:100%;background:#10b981;color:white;border:none;padding:0.35rem 0.5rem;border-radius:4px;font-size:0.78rem;font-weight:600;cursor:pointer;">Confirm Paid</button>
+                                                                                        </form>
+                                                                                        <form method="post" action="${pageContext.request.contextPath}/technician/client-penalty/review" style="flex:1;">
+                                                                                            <input type="hidden" name="penaltyId" value="${cp.penaltyId}">
+                                                                                            <input type="hidden" name="action" value="dispute">
+                                                                                            <button type="submit" style="width:100%;background:#ef4444;color:white;border:none;padding:0.35rem 0.5rem;border-radius:4px;font-size:0.78rem;font-weight:600;cursor:pointer;">Not Paid</button>
+                                                                                        </form>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </c:when>
+                                                                            <c:when test="${not empty cp and cp.status eq 'PENDING'}">
+                                                                                <span style="font-size:0.8rem;color:var(--muted-foreground);">Awaiting client payment</span>
+                                                                            </c:when>
+                                                                            <c:otherwise>
+                                                                                <span style="font-size:0.8rem;color:var(--muted-foreground);">—</span>
+                                                                            </c:otherwise>
+                                                                        </c:choose>
                                                                     </c:when>
                                                                     <c:otherwise>&mdash;</c:otherwise>
                                                                 </c:choose>
