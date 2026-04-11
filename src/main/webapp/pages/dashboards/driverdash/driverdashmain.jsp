@@ -186,20 +186,6 @@
     border: 1px solid var(--border);
     margin-bottom: 14px;
 }
-.coords-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-    font-size: 0.85em;
-}
-.coords-row span {
-    background: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 5px 10px;
-    font-family: 'IBM Plex Mono', monospace;
-    color: var(--foreground);
-}
 .save-loc-btn {
     padding: 10px 22px;
     background: var(--primary);
@@ -216,6 +202,24 @@
 #locStatus { margin-top: 8px; font-size: 0.88em; font-weight: 600; }
 #locStatus.success { color: #28a745; }
 #locStatus.error   { color: #dc3545; }
+
+/* Map Search */
+#map-search-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--input, #fff);
+    color: var(--foreground);
+    font-family: var(--font-sans), sans-serif;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+#map-search-input:focus {
+    outline: none;
+    border-color: var(--ring, var(--primary));
+}
 
 /* Quick links */
 .quick-links {
@@ -343,10 +347,7 @@
                     No location set — you won't appear in delivery request searches. Click on the map to pin your home base.
                 </div>
                 <% } %>
-                <div class="coords-row" id="coordsRow" style="<%= hasLocation ? "" : "display:none;" %>">
-                    <span id="coordLat"><%= hasLocation ? "Lat: " + String.format("%.7f", savedLat) : "" %></span>
-                    <span id="coordLng"><%= hasLocation ? "Lng: " + String.format("%.7f", savedLng) : "" %></span>
-                </div>
+                <input type="text" id="map-search-input" placeholder="Search for location (e.g., Colombo, Kandy)...">
                 <div id="dashMap"></div>
                 <button class="save-loc-btn" id="saveLocBtn" onclick="saveLocation()" disabled>Save Location</button>
                 <p id="locStatus"></p>
@@ -399,11 +400,41 @@
                 });
             }
 
-            document.getElementById('coordsRow').style.display = 'flex';
-            document.getElementById('coordLat').textContent = 'Lat: ' + pendingLat.toFixed(7);
-            document.getElementById('coordLng').textContent = 'Lng: ' + pendingLng.toFixed(7);
             document.getElementById('saveLocBtn').disabled = false;
             document.getElementById('locStatus').textContent = '';
+        });
+
+        // Initialize Places Autocomplete
+        const searchInput = document.getElementById('map-search-input');
+        const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+            componentRestrictions: { country: 'lk' }, // Restrict to Sri Lanka
+            fields: ['geometry', 'name']
+        });
+
+        autocomplete.addListener('place_changed', function () {
+            const place = autocomplete.getPlace();
+
+            if (place.geometry && place.geometry.location) {
+                pendingLat = place.geometry.location.lat();
+                pendingLng = place.geometry.location.lng();
+
+                if (marker) {
+                    marker.setPosition(place.geometry.location);
+                } else {
+                    marker = new google.maps.Marker({
+                        position: place.geometry.location,
+                        map: map,
+                        title: 'Home Base',
+                        animation: google.maps.Animation.DROP
+                    });
+                }
+
+                map.setCenter(place.geometry.location);
+                map.setZoom(15);
+
+                document.getElementById('saveLocBtn').disabled = false;
+                document.getElementById('locStatus').textContent = '';
+            }
         });
     }
 
@@ -443,7 +474,7 @@
         });
     }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&callback=initDashMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&libraries=places&callback=initDashMap" async defer></script>
 
 </body>
 </html>
