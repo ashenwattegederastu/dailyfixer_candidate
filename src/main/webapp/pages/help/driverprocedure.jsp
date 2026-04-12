@@ -21,7 +21,6 @@
     .container {
       flex: 1;
       margin-left: 240px;
-      margin-top: 83px;
       padding: 32px;
       background: linear-gradient(180deg, color-mix(in srgb, var(--muted) 55%, transparent), transparent 280px), var(--background);
       min-height: 100vh;

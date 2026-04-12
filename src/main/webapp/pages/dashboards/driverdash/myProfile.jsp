@@ -25,7 +25,6 @@
 .container {
     flex: 1;
     margin-left: 240px;
-    margin-top: 83px;
     padding: 30px;
     background-color: var(--background);
 }
@@ -322,13 +321,11 @@
         <div class="profile-details">
             <table>
                 <tr><th>Driver ID:</th><td>${sessionScope.currentUser.userId}</td></tr>
-                <tr><th>First Name:</th><td>${sessionScope.currentUser.firstName}</td></tr>
-                <tr><th>Last Name:</th><td>${sessionScope.currentUser.lastName}</td></tr>
+                <tr><th>Name:</th><td>${sessionScope.currentUser.firstName}</td></tr>
                 <tr><th>Username:</th><td>${sessionScope.currentUser.username}</td></tr>
                 <tr><th>Email:</th><td>${sessionScope.currentUser.email}</td></tr>
                 <tr><th>Phone:</th><td>${sessionScope.currentUser.phoneNumber}</td></tr>
                 <tr><th>City:</th><td>${sessionScope.currentUser.city}</td></tr>
-                <tr><th>Role:</th><td>${sessionScope.currentUser.role}</td></tr>
             </table>
 
             <div class="profile-buttons">

@@ -26,7 +26,6 @@
     <style>
         .page-content {
             margin-left: 240px;
-            margin-top: 83px;
             padding: 32px;
             background: var(--background);
             min-height: calc(100vh - 83px);
