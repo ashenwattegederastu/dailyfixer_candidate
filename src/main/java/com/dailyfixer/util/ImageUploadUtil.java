@@ -115,6 +115,8 @@ public class ImageUploadUtil {
 
     private static final String DRIVER_UPLOAD_DIR = "assets/images/uploads/drivers";
 
+    private static final String TECHNICIAN_UPLOAD_DIR = "assets/images/uploads/technicians";
+
     private static final String VEHICLE_UPLOAD_DIR = "assets/images/uploads/vehicles";
 
     /**
@@ -163,6 +165,36 @@ public class ImageUploadUtil {
         String relativePath = DRIVER_UPLOAD_DIR + "/" + fileName;
 
         Path uploadPath = Paths.get(webAppPath, DRIVER_UPLOAD_DIR);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        Path filePath = Paths.get(webAppPath, relativePath);
+        try (InputStream input = filePart.getInputStream()) {
+            Files.copy(input, filePath, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        return relativePath;
+    }
+
+    /**
+     * Saves a technician registration upload (profile picture, qualification files, work proof images,
+     * employee ID card). Accepts images and PDF files (PDF only valid for qualifications).
+     *
+     * @param filePart   The uploaded file part
+     * @param prefix     A descriptive prefix, e.g. "tech_profile_username"
+     * @param webAppPath The absolute path to the webapp directory
+     * @return The relative path to the saved file (for storing in DB)
+     */
+    public static String saveTechnicianUpload(Part filePart, String prefix, String webAppPath) throws IOException {
+        if (filePart == null || filePart.getSize() == 0) {
+            return null;
+        }
+
+        String fileName = prefix + "_" + System.currentTimeMillis() + getExtension(filePart);
+        String relativePath = TECHNICIAN_UPLOAD_DIR + "/" + fileName;
+
+        Path uploadPath = Paths.get(webAppPath, TECHNICIAN_UPLOAD_DIR);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
@@ -247,12 +279,10 @@ public class ImageUploadUtil {
         // Default to .jpg if no extension found
         String contentType = part.getContentType();
         if (contentType != null) {
-            if (contentType.contains("png"))
-                return ".png";
-            if (contentType.contains("gif"))
-                return ".gif";
-            if (contentType.contains("webp"))
-                return ".webp";
+            if (contentType.contains("png"))  return ".png";
+            if (contentType.contains("gif"))  return ".gif";
+            if (contentType.contains("webp")) return ".webp";
+            if (contentType.contains("pdf"))  return ".pdf";
         }
         return ".jpg";
     }

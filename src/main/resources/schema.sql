@@ -656,6 +656,56 @@ CREATE TABLE `driver_requests` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `technician_requests`
+--
+
+DROP TABLE IF EXISTS `technician_request_files`;
+DROP TABLE IF EXISTS `technician_requests`;
+CREATE TABLE `technician_requests` (
+  `request_id` int NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(50) NOT NULL,
+  `last_name` varchar(50) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `city` varchar(50) DEFAULT NULL,
+  `profile_picture_path` varchar(255) DEFAULT NULL,
+  `has_qualifications` tinyint(1) NOT NULL DEFAULT '0',
+  `has_experience` tinyint(1) NOT NULL DEFAULT '0',
+  `experience_company` varchar(100) DEFAULT NULL,
+  `experience_role` varchar(100) DEFAULT NULL,
+  `experience_years` int DEFAULT NULL,
+  `emp_id_card_path` varchar(255) DEFAULT NULL,
+  `emp_id_card_name` varchar(100) DEFAULT NULL,
+  `status` enum('PENDING','APPROVED','REJECTED') DEFAULT 'PENDING',
+  `rejection_reason` text,
+  `submitted_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `reviewed_date` timestamp NULL DEFAULT NULL,
+  `reviewed_by` int DEFAULT NULL,
+  PRIMARY KEY (`request_id`),
+  UNIQUE KEY `uq_tr_username` (`username`),
+  UNIQUE KEY `uq_tr_email` (`email`),
+  KEY `idx_tr_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `technician_request_files`
+--
+
+CREATE TABLE `technician_request_files` (
+  `file_id` int NOT NULL AUTO_INCREMENT,
+  `request_id` int NOT NULL,
+  `file_type` enum('QUALIFICATION','WORK_PROOF') NOT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `original_filename` varchar(255) DEFAULT NULL,
+  `uploaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`file_id`),
+  KEY `idx_trf_request` (`request_id`),
+  CONSTRAINT `fk_trf_request` FOREIGN KEY (`request_id`) REFERENCES `technician_requests` (`request_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Table structure for table `guide_categories`
 --
 
