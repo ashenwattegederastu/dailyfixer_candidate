@@ -309,7 +309,7 @@ nav.public-nav .theme-toggle {
 .dashboard-container {
   flex: 1;
   margin-left: 240px;
-  margin-top: 83px;
+
   padding: 30px;
   background-color: var(--background);
   transition: background-color 0.3s ease;

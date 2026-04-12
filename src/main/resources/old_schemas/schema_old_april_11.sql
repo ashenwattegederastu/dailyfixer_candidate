@@ -115,7 +115,7 @@ CREATE TABLE `booking_no_shows` (
   KEY `idx_ns_tech` (`technician_id`),
   CONSTRAINT `fk_ns_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ns_tech` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -138,7 +138,7 @@ CREATE TABLE `booking_notifications` (
   KEY `idx_bn_read` (`is_read`),
   CONSTRAINT `fk_bn_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_bn_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -165,7 +165,7 @@ CREATE TABLE `booking_ratings` (
   CONSTRAINT `fk_br_rated_by` FOREIGN KEY (`rated_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_br_rated_user` FOREIGN KEY (`rated_user`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `booking_ratings_chk_1` CHECK ((`rating` between 1 and 5))
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +213,7 @@ CREATE TABLE `bookings` (
   `location_address` varchar(255) NOT NULL,
   `location_latitude` decimal(10,8) DEFAULT NULL,
   `location_longitude` decimal(11,8) DEFAULT NULL,
-  `status` enum('REQUESTED','ACCEPTED','REJECTED','CANCELLED','IN_PROGRESS','TECHNICIAN_COMPLETED','FULLY_COMPLETED','NO_SHOW','RESCHEDULE_PENDING','AUTO_REJECTED','CLIENT_NO_SHOW') NOT NULL DEFAULT 'REQUESTED',
+  `status` enum('REQUESTED','ACCEPTED','REJECTED','CANCELLED','IN_PROGRESS','TECHNICIAN_COMPLETED','FULLY_COMPLETED','NO_SHOW','RESCHEDULE_PENDING','AUTO_REJECTED') NOT NULL DEFAULT 'REQUESTED',
   `rejection_reason` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -230,7 +230,7 @@ CREATE TABLE `bookings` (
   CONSTRAINT `fk_booking_service` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_booking_technician` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_booking_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,41 +301,7 @@ CREATE TABLE `chats` (
   CONSTRAINT `fk_chat_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_chat_technician` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_chat_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `client_no_show_penalties`
---
-
-DROP TABLE IF EXISTS `client_no_show_penalties`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `client_no_show_penalties` (
-  `penalty_id` int NOT NULL AUTO_INCREMENT,
-  `booking_id` int NOT NULL,
-  `client_id` int NOT NULL,
-  `technician_id` int NOT NULL,
-  `amount` decimal(10,2) NOT NULL DEFAULT '2500.00',
-  `status` enum('PENDING','PROOF_UPLOADED','CONFIRMED_PAID','ADMIN_REVIEW','RESOLVED','FRAUD_SUSPENDED') NOT NULL DEFAULT 'PENDING',
-  `tech_proof_path` varchar(500) DEFAULT NULL COMMENT 'Technician arrival proof photo (required when marking client not home)',
-  `proof_path` varchar(500) DEFAULT NULL,
-  `proof_uploaded_at` timestamp NULL DEFAULT NULL,
-  `tech_action` enum('CONFIRMED_PAID','MARKED_NOT_PAID') DEFAULT NULL,
-  `tech_action_at` timestamp NULL DEFAULT NULL,
-  `admin_action` enum('MARK_PAID','SUSPEND_CLIENT') DEFAULT NULL,
-  `admin_action_at` timestamp NULL DEFAULT NULL,
-  `admin_id` int DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`penalty_id`),
-  UNIQUE KEY `uq_cnsp_booking` (`booking_id`),
-  KEY `idx_cnsp_client` (`client_id`),
-  KEY `idx_cnsp_technician` (`technician_id`),
-  KEY `idx_cnsp_status` (`status`),
-  CONSTRAINT `fk_cnsp_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_cnsp_client` FOREIGN KEY (`client_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_cnsp_technician` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -889,7 +855,7 @@ CREATE TABLE `order_items` (
   CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON DELETE CASCADE,
   CONSTRAINT `order_items_ibfk_3` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE SET NULL,
   CONSTRAINT `order_items_ibfk_4` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`variant_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -930,7 +896,7 @@ CREATE TABLE `orders` (
   UNIQUE KEY `order_id` (`order_id`),
   KEY `fk_orders_store` (`store_id`),
   CONSTRAINT `fk_orders_store` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1168,7 +1134,7 @@ CREATE TABLE `store_orders` (
   KEY `fk_store_orders_store` (`store_id`),
   CONSTRAINT `fk_store_orders_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_store_orders_store` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1263,7 +1229,7 @@ CREATE TABLE `technician_penalty_log` (
   KEY `idx_tpl_noshow` (`no_show_id`),
   CONSTRAINT `fk_tpl_ns` FOREIGN KEY (`no_show_id`) REFERENCES `booking_no_shows` (`no_show_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_tpl_tech` FOREIGN KEY (`technician_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1365,7 +1331,7 @@ CREATE TABLE `volunteer_badges` (
   KEY `badge_id` (`badge_id`),
   CONSTRAINT `volunteer_badges_ibfk_1` FOREIGN KEY (`volunteer_id`) REFERENCES `volunteers` (`volunteer_id`) ON DELETE CASCADE,
   CONSTRAINT `volunteer_badges_ibfk_2` FOREIGN KEY (`badge_id`) REFERENCES `badges` (`badge_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=294 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=293 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1455,4 +1421,4 @@ CREATE TABLE `volunteers` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-11 18:49:38
+-- Dump completed on 2026-04-06 17:27:34
