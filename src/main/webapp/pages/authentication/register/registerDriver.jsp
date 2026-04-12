@@ -309,7 +309,7 @@
                     <input type="checkbox" name="policy_accepted" id="policy_accepted" required>
                     <label for="policy_accepted">
                         I have read and agree to the
-                        <a href="${pageContext.request.contextPath}/pages/policies/driver-policies.jsp" target="_blank">Driver Policies</a>
+                        <a href="javascript:void(0);" onclick="openPolicyModal(event)">Driver Policies</a>
                         <span class="required-star">*</span>
                     </label>
                 </div>
@@ -322,7 +322,43 @@
         </div>
     </div>
 
+    <!-- Driver Policies Modal -->
+    <div id="policyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:1000; padding:20px; backdrop-filter: blur(2px);">
+        <div style="background:var(--background); max-width:600px; width:100%; border-radius:var(--radius-md); padding:30px; position:relative; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-height:85vh; overflow-y:auto; border: 1px solid var(--border);">
+            <button type="button" onclick="closePolicyModal()" style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--muted-foreground);">&times;</button>
+            <h2 style="margin-top:0; font-size:1.2rem; color:var(--foreground); margin-bottom:15px;">Driver Policies & Terms of Service</h2>
+            <div style="font-size:0.9rem; color:var(--muted-foreground); line-height:1.6;">
+                <p style="margin-bottom:12px;">By registering as a driver on Daily Fixer, you agree to abide by the following policies and guidelines.</p>
+                <ul style="padding-left:20px; color:var(--foreground);">
+                    <li style="margin-bottom:8px;">Daily Fixer currently uses a <strong>one-attempt delivery policy</strong>. Re-delivery scheduling is out of scope.</li>
+                    <li style="margin-bottom:8px;">If the buyer is unavailable but answers the call, the package may be handed to a nearby neighbor or family member only after PIN verification.</li>
+                    <li style="margin-bottom:8px;">If the buyer is unreachable, doorstep-drop completion is allowed only for orders where buyer consent exists.</li>
+                    <li style="margin-bottom:8px;">For doorstep-drop completion, the driver must upload <strong>two proof photos</strong>: package close-up and package with door/house context.</li>
+                    <li style="margin-bottom:8px;">Drivers must not mark an order delivered unless either PIN handover or required photo proof has been completed.</li>
+                    <li style="margin-bottom:8px;">All delivery disputes are handled by support through the official website email channel.</li>
+                </ul>
+                <div style="background:var(--muted); border:1px dashed var(--border); border-radius:8px; padding:15px; margin-top:20px; text-align:center;">
+                    <p style="font-weight:600; margin-bottom:5px; color:var(--foreground);">Policy Scope</p>
+                    <p style="margin:0; font-size:0.85rem;">Advanced call logging, in-app calling, GPS tracking, and automated logistics rerouting are currently out of scope for this release.</p>
+                </div>
+            </div>
+            <button type="button" onclick="acceptPolicies()" style="width:100%; margin-top:20px; padding:12px; background:var(--primary); color:white; border:none; border-radius:var(--radius-md); font-size:0.95rem; font-weight:600; cursor:pointer;">I Agree & Understand</button>
+        </div>
+    </div>
+
     <script>
+        function openPolicyModal(e) {
+            if(e) e.preventDefault();
+            document.getElementById('policyModal').style.display = 'flex';
+        }
+        function closePolicyModal() {
+            document.getElementById('policyModal').style.display = 'none';
+        }
+        function acceptPolicies() {
+            closePolicyModal();
+            document.getElementById('policy_accepted').checked = true;
+        }
+
         function previewFile(input, previewId) {
             var preview = document.getElementById(previewId);
             if (input.files && input.files[0]) {

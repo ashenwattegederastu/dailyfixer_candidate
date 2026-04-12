@@ -13,24 +13,15 @@
                 return;
             }
 
-            // Get the parent container (form-group, input-field, or password-input-wrapper)
+            // Check if it's already wrapped
             let container = input.parentElement;
-            
-            // If parent is not a container, use it directly and make it relative
-            if (!container.classList.contains('form-group') && 
-                !container.classList.contains('input-field') && 
-                !container.classList.contains('password-input-wrapper')) {
-                // Check if we should wrap it
-                if (container.tagName === 'DIV' || container.classList.contains('form-group') || container.classList.contains('input-field')) {
-                    // Already in a suitable container
-                } else {
-                    // Create wrapper
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'password-input-wrapper';
-                    input.parentNode.insertBefore(wrapper, input);
-                    wrapper.appendChild(input);
-                    container = wrapper;
-                }
+            if (!container.classList.contains('password-input-wrapper')) {
+                // Wrap the input so the toggle button aligns perfectly with the input and not its label
+                const wrapper = document.createElement('div');
+                wrapper.className = 'password-input-wrapper';
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+                container = wrapper;
             }
 
             // Make container position relative if not already

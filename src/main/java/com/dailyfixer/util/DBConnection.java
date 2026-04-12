@@ -23,13 +23,13 @@ import java.sql.SQLException;
 
 public class DBConnection {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/dailyfixer_main"
+    private static final String URL = "jdbc:mysql://localhost:3306/daily_fixer4/9"
             + "?useSSL=false"
             + "&serverTimezone=Asia/Colombo"
             + "&allowPublicKeyRetrieval=true";
 
     private static final String USER = "root";
-    private static final String PASS = "admin";
+    private static final String PASS = "12345";
 
     public static Connection getConnection()
             throws SQLException, ClassNotFoundException {

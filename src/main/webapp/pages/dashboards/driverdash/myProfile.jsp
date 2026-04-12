@@ -154,19 +154,21 @@
 .location-card .location-body {
     padding: 24px 30px;
 }
-.location-card .current-coords {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 16px;
-    font-size: 0.9em;
-    color: var(--muted-foreground);
+#profile-map-search {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--input, #fff);
+    color: var(--foreground);
+    font-family: var(--font-sans), sans-serif;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
 }
-.location-card .current-coords span {
-    background: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 6px 12px;
-    font-family: 'IBM Plex Mono', monospace;
+#profile-map-search:focus {
+    outline: none;
+    border-color: var(--ring, var(--primary));
 }
 #locationMap {
     width: 100%;
@@ -303,7 +305,16 @@
 
     <div class="profile-card">
         <div class="profile-image">
-            <img src="${pageContext.request.contextPath}/assets/images/default-profile.png" alt="Profile Picture">
+            <c:choose>
+                <c:when test="${not empty sessionScope.currentUser.profilePicturePath}">
+                    <img src="${pageContext.request.contextPath}/${sessionScope.currentUser.profilePicturePath}" 
+                         alt="Profile Picture" 
+                         onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/default-profile.png';">
+                </c:when>
+                <c:otherwise>
+                    <img src="${pageContext.request.contextPath}/assets/images/default-profile.png" alt="Profile Picture">
+                </c:otherwise>
+            </c:choose>
             <h2>${sessionScope.currentUser.firstName} ${sessionScope.currentUser.lastName}</h2>
             <p class="role">(${sessionScope.currentUser.role})</p>
         </div>
@@ -338,22 +349,14 @@
             <p>Your home location is used to find nearby delivery requests within 10 km.</p>
         </div>
         <div class="location-body">
-            <% if (hasLocation) { %>
-            <div class="current-coords">
-                <span id="coordLat">Lat: <%= String.format("%.7f", savedLat) %></span>
-                <span id="coordLng">Lng: <%= String.format("%.7f", savedLng) %></span>
-            </div>
-            <% } else { %>
+            <% if (!hasLocation) { %>
             <p class="no-location-warning">
                 No location set. Please pin your home base to receive delivery requests.
             </p>
-            <div class="current-coords" style="display: none;">
-                <span id="coordLat">Lat: —</span>
-                <span id="coordLng">Lng: —</span>
-            </div>
             <% } %>
 
-            <p class="location-instructions">Click anywhere on the map to pin your home base, then click Save.</p>
+            <p class="location-instructions">Search for a location or click anywhere on the map to pin your home base.</p>
+            <input type="text" id="profile-map-search" placeholder="Search for location (e.g., Colombo, Kandy)...">
             <div id="locationMap"></div>
 
             <button class="save-location-btn" id="saveLocationBtn" onclick="saveLocation()" disabled>
@@ -454,14 +457,44 @@
                 });
             }
 
-            const coordsRow = document.querySelector('.current-coords');
-            coordsRow.style.display = 'flex';
-            document.getElementById('coordLat').textContent = 'Lat: ' + pendingLat.toFixed(7);
-            document.getElementById('coordLng').textContent = 'Lng: ' + pendingLng.toFixed(7);
-
             document.getElementById('saveLocationBtn').disabled = false;
             document.getElementById('locationStatus').textContent = '';
         });
+
+        // Initialize Places Autocomplete
+        const searchInput = document.getElementById('profile-map-search');
+        if (searchInput) {
+            const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+                componentRestrictions: { country: 'lk' }, // Restrict to Sri Lanka
+                fields: ['geometry', 'name']
+            });
+
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
+
+                if (place.geometry && place.geometry.location) {
+                    pendingLat = place.geometry.location.lat();
+                    pendingLng = place.geometry.location.lng();
+
+                    if (marker) {
+                        marker.setPosition(place.geometry.location);
+                    } else {
+                        marker = new google.maps.Marker({
+                            position: place.geometry.location,
+                            map: map,
+                            title: 'Home Base',
+                            animation: google.maps.Animation.DROP
+                        });
+                    }
+
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(15);
+
+                    document.getElementById('saveLocationBtn').disabled = false;
+                    document.getElementById('locationStatus').textContent = '';
+                }
+            });
+        }
     }
 
     function saveLocation() {
@@ -594,7 +627,7 @@
         loadBankDetails();
     });
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8zSes6UGbYKIHNzCp3tny5RgccFruILI&callback=initDriverProfileMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO5jDKuyt8P6aVYy0RfIjanWVbHC--Ox0&libraries=places&callback=initDriverProfileMap" async defer></script>
 
 </body>
 </html>
