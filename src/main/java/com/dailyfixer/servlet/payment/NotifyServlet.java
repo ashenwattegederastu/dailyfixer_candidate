@@ -117,52 +117,55 @@ public class NotifyServlet extends HttpServlet {
                     System.out.println("Unknown status code: " + status);
             }
 
-            // Update order in database
-            boolean updated = orderDAO.updateOrderStatus(orderId, newOrderStatus, paymentId);
-
-            // If payment successful, update all related orders and reduce stock
-            // This handles multi-store orders where we create separate orders per store
-            if (updated && "PAID".equals(newOrderStatus)) {
-                // Reduce stock for the main order
-                try {
-                    boolean stockReduced = orderDAO.reduceStockForOrder(orderId);
-                    if (stockReduced) {
-                        System.out.println("Stock reduced successfully for order: " + orderId);
-                    } else {
-                        System.err.println("Warning: Stock reduction failed or incomplete for order: " + orderId);
+            // PAID: atomic PENDING→PAID so duplicate webhooks / Success.jsp cannot double-reduce stock
+            boolean updated;
+            if ("PAID".equals(newOrderStatus)) {
+                boolean claimed = orderDAO.claimOrderPaidFromPending(orderId, paymentId);
+                if (claimed) {
+                    try {
+                        boolean stockReduced = orderDAO.reduceStockForOrder(orderId);
+                        if (stockReduced) {
+                            System.out.println("Stock reduced successfully for order: " + orderId);
+                        } else {
+                            System.err.println("Warning: Stock reduction failed or incomplete for order: " + orderId);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error reducing stock for order " + orderId + ": " + e.getMessage());
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    System.err.println("Error reducing stock for order " + orderId + ": " + e.getMessage());
-                    e.printStackTrace();
+                } else {
+                    System.out.println("NotifyServlet: PAID claim skipped for " + orderId
+                            + " (already paid, not pending, or unknown order — no stock change)");
                 }
-                
-                // Find and update related orders (orders with same email created within last 5 minutes)
-                // This is a workaround since we don't have a parent_order_id field
+
+                // Multi-store: other PENDING orders for same checkout
                 try {
                     Order mainOrder = orderDAO.findOrderById(orderId);
                     if (mainOrder != null && mainOrder.getEmail() != null) {
-                        // Update all orders with same email and PENDING status created recently
                         java.util.List<Order> relatedOrders = orderDAO.getOrdersByStatus("PENDING");
                         for (Order relatedOrder : relatedOrders) {
-                            if (relatedOrder.getEmail() != null && 
-                                relatedOrder.getEmail().equals(mainOrder.getEmail()) &&
-                                !relatedOrder.getOrderId().equals(orderId)) {
-                                // Check if created within last 5 minutes (related order)
-                                long timeDiff = Math.abs(relatedOrder.getCreatedAt().getTime() - mainOrder.getCreatedAt().getTime());
-                                if (timeDiff < 300000) { // 5 minutes in milliseconds
-                                    orderDAO.updateStatus(relatedOrder.getOrderId(), "PAID");
-                                    System.out.println("Updated related order to PAID: " + relatedOrder.getOrderId());
-                                    
-                                    // Reduce stock for related order as well
-                                    try {
-                                        boolean stockReduced = orderDAO.reduceStockForOrder(relatedOrder.getOrderId());
-                                        if (stockReduced) {
-                                            System.out.println("Stock reduced successfully for related order: " + relatedOrder.getOrderId());
-                                        } else {
-                                            System.err.println("Warning: Stock reduction failed for related order: " + relatedOrder.getOrderId());
+                            if (relatedOrder.getEmail() != null
+                                    && relatedOrder.getEmail().equals(mainOrder.getEmail())
+                                    && !relatedOrder.getOrderId().equals(orderId)) {
+                                long timeDiff = Math.abs(
+                                        relatedOrder.getCreatedAt().getTime() - mainOrder.getCreatedAt().getTime());
+                                if (timeDiff < 300000) {
+                                    boolean relClaimed = orderDAO.claimOrderPaidFromPending(relatedOrder.getOrderId(), null);
+                                    if (relClaimed) {
+                                        System.out.println("Updated related order to PAID: " + relatedOrder.getOrderId());
+                                        try {
+                                            boolean stockReduced = orderDAO.reduceStockForOrder(relatedOrder.getOrderId());
+                                            if (stockReduced) {
+                                                System.out.println("Stock reduced successfully for related order: "
+                                                        + relatedOrder.getOrderId());
+                                            } else {
+                                                System.err.println("Warning: Stock reduction failed for related order: "
+                                                        + relatedOrder.getOrderId());
+                                            }
+                                        } catch (Exception e) {
+                                            System.err.println("Error reducing stock for related order "
+                                                    + relatedOrder.getOrderId() + ": " + e.getMessage());
                                         }
-                                    } catch (Exception e) {
-                                        System.err.println("Error reducing stock for related order " + relatedOrder.getOrderId() + ": " + e.getMessage());
                                     }
                                 }
                             }
@@ -171,6 +174,12 @@ public class NotifyServlet extends HttpServlet {
                 } catch (Exception e) {
                     System.err.println("Warning: Could not update related orders: " + e.getMessage());
                 }
+
+                Order verify = orderDAO.findOrderById(orderId);
+                updated = verify != null && verify.getStatus() != null
+                        && "PAID".equalsIgnoreCase(verify.getStatus().trim());
+            } else {
+                updated = orderDAO.updateOrderStatus(orderId, newOrderStatus, paymentId);
             }
 
             if (updated) {

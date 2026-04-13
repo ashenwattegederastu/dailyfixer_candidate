@@ -8,6 +8,7 @@
 <%@ page import="com.dailyfixer.model.ProductVariant" %>
 <%@ page import="com.dailyfixer.model.Discount" %>
 <%@ page import="com.dailyfixer.model.User" %>
+<%@ page import="com.dailyfixer.util.ProductDisplayUtil" %>
 
 <% 
     // Check if user is logged in
@@ -23,31 +24,34 @@
         return;
     }
     
-    // First check if itemsToCheckout already exists in session (from previous page load)
+    // Session "itemsToCheckout" can be stale (e.g. Buy Now qty 1) while cart has updated quantities.
+    // fromCart=1: always re-copy current cart. Buy-now query params: build that line item and replace session.
+@SuppressWarnings("unchecked")
+Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
 @SuppressWarnings("unchecked")
 Map<String, CartItem> itemsToCheckout = (Map<String, CartItem>) session.getAttribute("itemsToCheckout");
 
-// If not in session, build from cart or Buy Now parameters
-if (itemsToCheckout == null || itemsToCheckout.isEmpty()) {
+String fromCartParam = request.getParameter("fromCart");
+String productIdParam = request.getParameter("productId");
+String quantityParam = request.getParameter("quantity");
+String variantIdParam = request.getParameter("variantId");
+
+boolean syncFromCart = "1".equals(fromCartParam) || "true".equalsIgnoreCase(fromCartParam != null ? fromCartParam : "");
+boolean buyNowRequest = productIdParam != null && quantityParam != null && !productIdParam.trim().isEmpty();
+
+if (syncFromCart) {
     itemsToCheckout = new HashMap<>();
-
-    // Get cart from session
-    @SuppressWarnings("unchecked")
-    Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
-
     if (cart != null && !cart.isEmpty()) {
         itemsToCheckout.putAll(cart);
-    } else {
-        String productIdParam = request.getParameter("productId");
-        String quantityParam = request.getParameter("quantity");
-        String variantIdParam = request.getParameter("variantId");
-
-    if (productIdParam != null && quantityParam != null && !productIdParam.isEmpty()) {
-        int productId = Integer.parseInt(productIdParam);
-        int quantity = Integer.parseInt(quantityParam);
+    }
+} else if (buyNowRequest) {
+    itemsToCheckout = new HashMap<>();
+    try {
+        int productId = Integer.parseInt(productIdParam.trim());
+        int quantity = Integer.parseInt(quantityParam.trim());
         Integer variantId = null;
         if (variantIdParam != null && !variantIdParam.isBlank()) {
-            variantId = Integer.parseInt(variantIdParam);
+            variantId = Integer.parseInt(variantIdParam.trim());
         }
 
         ProductDAO dao = new ProductDAO();
@@ -58,25 +62,26 @@ if (itemsToCheckout == null || itemsToCheckout.isEmpty()) {
             String variantColor = null;
             String variantSize = null;
             String variantPower = null;
+            ProductVariant buyNowVariant = null;
 
-            // If variant is selected, use variant price
             if (variantId != null) {
                 try {
                     ProductVariantDAO variantDAO = new ProductVariantDAO();
-                    ProductVariant variant = variantDAO.getVariantById(variantId);
-                    if (variant != null && variant.getProductId() == productId) {
-                        price = variant.getPrice().doubleValue();
+                    buyNowVariant = variantDAO.getVariantById(variantId);
+                    if (buyNowVariant != null && buyNowVariant.getProductId() == productId) {
+                        price = buyNowVariant.getPrice().doubleValue();
                         originalPrice = price;
-                        variantColor = variant.getColor();
-                        variantSize = variant.getSize();
-                        variantPower = variant.getPower();
+                        variantColor = buyNowVariant.getColor();
+                        variantSize = buyNowVariant.getSize();
+                        variantPower = buyNowVariant.getPower();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
-            // Check for active discount
+            String buyNowImagePath = ProductDisplayUtil.resolveCartThumbnailPath(product, buyNowVariant);
+
             double discountAmount = 0;
             String discountName = null;
             String discountType = null;
@@ -87,9 +92,7 @@ if (itemsToCheckout == null || itemsToCheckout.isEmpty()) {
                 Discount discount = null;
 
                 if (variantId != null) {
-                    // First check for variant-specific discount
                     discount = discountDAO.getActiveDiscountForVariant(variantId);
-                    // If no variant discount, check for product-level discount
                     if (discount == null || !discount.isValid()) {
                         discount = discountDAO.getActiveDiscountForProduct(productId);
                     }
@@ -114,7 +117,7 @@ if (itemsToCheckout == null || itemsToCheckout.isEmpty()) {
                 discountedPrice,
                 originalPrice,
                 quantity,
-                product.getImagePath(),
+                buyNowImagePath,
                 variantId,
                 variantColor,
                 variantSize,
@@ -128,8 +131,18 @@ if (itemsToCheckout == null || itemsToCheckout.isEmpty()) {
             String cartKey = variantId != null ? "V-" + variantId : "P-" + productId;
             itemsToCheckout.put(cartKey, item);
         }
+    } catch (NumberFormatException nfe) {
+        nfe.printStackTrace();
     }
+} else if (itemsToCheckout == null || itemsToCheckout.isEmpty()) {
+    itemsToCheckout = new HashMap<>();
+    if (cart != null && !cart.isEmpty()) {
+        itemsToCheckout.putAll(cart);
     }
+}
+
+if (itemsToCheckout == null) {
+    itemsToCheckout = new HashMap<>();
 }
 
 // If no items, show message and return

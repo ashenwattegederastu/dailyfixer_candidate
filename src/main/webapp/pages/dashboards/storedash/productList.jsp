@@ -5,6 +5,7 @@
 <%@ page import="com.dailyfixer.model.Discount" %>
 <%@ page import="com.dailyfixer.dao.ProductVariantDAO" %>
 <%@ page import="com.dailyfixer.dao.DiscountDAO" %>
+<%@ page import="com.dailyfixer.util.ProductDisplayUtil" %>
 <%@ page import="java.util.List" %>
 <%
     User user = (User) session.getAttribute("currentUser");
@@ -428,6 +429,7 @@ img.service-thumb {
                     }
                     
                     int totalStock = hasVariants ? totalVariantStock : p.getQuantity();
+                    String catalogueImg = ProductDisplayUtil.getDisplayImagePath(p, variants);
                 %>
             <tr class="product-row" data-product-id="<%=p.getProductId()%>" data-category="<%=p.getType() != null ? p.getType() : ""%>">
                 <td>
@@ -440,8 +442,8 @@ img.service-thumb {
                     <% } %>
                 </td>
                 <td>
-                    <% if(p.getImagePath() != null && !p.getImagePath().isEmpty()){ %>
-                    <img class="service-thumb" src="<%=request.getContextPath()%>/<%=p.getImagePath()%>">
+                    <% if(catalogueImg != null && !catalogueImg.isEmpty()){ %>
+                    <img class="service-thumb" src="<%=request.getContextPath()%>/<%=catalogueImg%>">
                     <% } else { %>
                     <img class="service-thumb" src="${pageContext.request.contextPath}/assets/images/tools.png" alt="No Image">
                     <% } %>
@@ -605,6 +607,7 @@ let productData = {};
         } catch (Exception e) {
             e.printStackTrace();
         }
+        String modalDisplayImg = ProductDisplayUtil.getDisplayImagePath(p, variants);
 %>
 productData[<%=p.getProductId()%>] = {
     id: <%=p.getProductId()%>,
@@ -614,7 +617,7 @@ productData[<%=p.getProductId()%>] = {
     price: <%=p.getPrice()%>,
     quantity: <%=p.getQuantity()%>,
     unit: "<%=p.getQuantityUnit() != null ? p.getQuantityUnit() : ""%>",
-    image: "<%=p.getImagePath() != null && !p.getImagePath().isEmpty() ? request.getContextPath() + "/" + p.getImagePath() : ""%>",
+    image: "<%=modalDisplayImg != null && !modalDisplayImg.isEmpty() ? request.getContextPath() + "/" + modalDisplayImg : ""%>",
     variants: [
         <% if (variants != null && !variants.isEmpty()) {
             for (int i = 0; i < variants.size(); i++) {

@@ -231,18 +231,8 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Your city (optional)</label>
-                        <select name="city">
-                            <option value="">-- Select city --</option>
-                            <% String[] cities={"Colombo","Kandy","Galle","Jaffna","Kurunegala","Matara","Trincomalee","Batticaloa","Negombo","Anuradhapura","Polonnaruwa","Badulla","Ratnapura","Puttalam","Kilinochchi","Mannar","Hambantota"};
-                               for (String c : cities) { %>
-                                <option value="<%=c%>"><%=c%></option>
-                            <% } %>
-                        </select>
-                    </div>
-
                     <div class="section-label">Store Details</div>
+                    <% String[] cities = {"Colombo","Kandy","Galle","Jaffna","Kurunegala","Matara","Trincomalee","Batticaloa","Negombo","Anuradhapura","Polonnaruwa","Badulla","Ratnapura","Puttalam","Kilinochchi","Mannar","Hambantota"}; %>
 
                     <div class="form-group">
                         <label>Store name</label>

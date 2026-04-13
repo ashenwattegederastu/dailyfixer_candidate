@@ -28,6 +28,11 @@
     } catch (Exception e) {
         e.printStackTrace();
     }
+
+    String flashError = (String) session.getAttribute("editProductFlashError");
+    if (flashError != null) {
+        session.removeAttribute("editProductFlashError");
+    }
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -70,6 +75,10 @@
         <div class="form-card">
             <h2>Edit Product</h2>
 
+            <% if (flashError != null) { %>
+            <div class="server-error" style="margin-bottom: 1rem; color: var(--destructive, #b91c1c);"><%= flashError %></div>
+            <% } %>
+
             <form action="${pageContext.request.contextPath}/EditProductServlet" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="productId" value="<%=product.getProductId()%>">
 
@@ -108,7 +117,7 @@
                 </div>
 
                 <label>Quantity <span id="quantityNote" class="form-help">(<%= (variants != null && !variants.isEmpty()) ? "Not required - variants have their own quantities" : "Required if no variants" %>)</span></label>
-                <input type="number" step="0.01" name="quantity" id="quantityInput" value="<%=product.getQuantity()%>" placeholder="Enter quantity" <%=(variants==null || variants.isEmpty()) ? "required" : "" %>>
+                <input type="number" step="0.01" name="quantity" id="quantityInput" value="<%=product.getQuantity()%>" placeholder="Enter quantity" min="0" <%=(variants==null || variants.isEmpty()) ? "required" : "" %>>
 
                 <label>Quantity Unit</label>
                 <select name="quantityUnit" required>
@@ -119,7 +128,7 @@
                 </select>
 
                 <label>Price (Rs.) <span id="priceNote" class="form-help"></span></label>
-                <input type="number" step="0.01" name="price" value="<%=product.getPrice()%>" placeholder="Enter price" required>
+                <input type="number" step="0.01" name="price" value="<%=product.getPrice()%>" placeholder="Enter price" required min="0">
 
                 <label>Description</label>
                 <textarea name="description" rows="4" placeholder="Enter product description" required><%=product.getDescription()%></textarea>
@@ -167,12 +176,12 @@
                                     </div>
                                     <div>
                                         <label>Variant Price (Rs.)</label>
-                                        <input type="number" step="0.01" name="variantPrice[]" value="<%=v.getPrice()%>" placeholder="Price">
+                                        <input type="number" step="0.01" name="variantPrice[]" value="<%=v.getPrice()%>" placeholder="Price" min="0">
                                     </div>
                                 </div>
                                 <div>
                                     <label>Variant Stock</label>
-                                    <input type="number" name="variantQuantity[]" value="<%=v.getQuantity()%>" placeholder="Stock quantity">
+                                    <input type="number" name="variantQuantity[]" value="<%=v.getQuantity()%>" placeholder="Stock quantity" min="0">
                                 </div>
                                 <div class="variant-image-wrap">
                                     <label>Variant Image <span class="form-help">(Optional)</span></label>
@@ -208,12 +217,12 @@
                                     </div>
                                     <div>
                                         <label>Variant Price (Rs.)</label>
-                                        <input type="number" step="0.01" name="variantPrice[]" placeholder="Price">
+                                        <input type="number" step="0.01" name="variantPrice[]" placeholder="Price" min="0">
                                     </div>
                                 </div>
                                 <div>
                                     <label>Variant Stock</label>
-                                    <input type="number" name="variantQuantity[]" placeholder="Stock quantity">
+                                    <input type="number" name="variantQuantity[]" placeholder="Stock quantity" min="0">
                                 </div>
                                 <div class="variant-image-wrap">
                                     <label>Variant Image <span class="form-help">(Optional)</span></label>

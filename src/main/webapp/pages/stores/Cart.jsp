@@ -377,7 +377,7 @@
                 window.location.href = "<%=request.getContextPath()%>/pages/authentication/login.jsp?redirect=" + encodeURIComponent(currentPath);
                 return;
             <% } %>
-            window.location.href = "checkout.jsp";
+            window.location.href = "checkout.jsp?fromCart=1";
         });
 
         updateSubtotal();
