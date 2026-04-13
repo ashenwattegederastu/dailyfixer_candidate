@@ -251,51 +251,29 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
         .shipping, .order-summary {
             background: var(--card);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
         }
 
         .shipping { flex: 3; min-width: 400px; }
         .order-summary { flex: 1; min-width: 250px; position: sticky; top: 100px; }
 
-        /* ===== SHIPPING FORM ===== */
-        h2 {
+        .checkout-title {
             margin-bottom: 15px;
             color: var(--primary);
             text-align: center;
         }
 
-        label {
-            display: block;
-            margin-top: 15px;
-            font-weight: 600;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 5px;
-            border: none;
-            box-shadow: 3px 5px 8px rgba(139,125,216,0.15);
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            box-shadow: 0 4px 12px rgba(139,125,216,0.25);
-            transform: translateY(-1px);
-        }
-
         .address-row {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 15px;
         }
 
-        .address-row div { flex: 1; }
+        .address-row > div { flex: 1; }
 
         /* ===== ORDER SUMMARY ===== */
-        .order-summary h2 {
+        .order-summary-title {
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid var(--primary);
@@ -310,9 +288,10 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
             margin-bottom: 15px;
             background: var(--secondary);
             padding: 10px;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             box-shadow: var(--shadow-sm);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid var(--border);
         }
 
         .checkout-item:hover {
@@ -324,7 +303,7 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
             width: 80px;
             height: 80px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             border: 1px solid var(--border);
         }
 
@@ -351,25 +330,6 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
             font-size: 1.15rem;
             color: var(--primary);
         }
-
-        .place-order {
-            background: var(--primary);
-            color: var(--primary-foreground);
-            border: none;
-            padding: 12px;
-            width: 100%;
-            font-size: 1.05rem;
-            cursor: pointer;
-            border-radius: 10px;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .place-order:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            opacity: 0.9;
-        }
     </style>
 </head>
 
@@ -383,10 +343,10 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
         <div class="checkout-container">
             <!-- Left: Shipping Details -->
             <div class="shipping">
-                <h2>Shipping Details</h2>
+                <h2 class="checkout-title">Shipping Details</h2>
                 <% String error = request.getParameter("error"); 
                    if (error != null) { %>
-                    <div style="background-color: var(--destructive); color: var(--destructive-foreground); padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid var(--destructive);">
+                    <div class="alert alert-error">
                         <% if ("missing_fields".equals(error)) { %>
                             Please fill all required fields.
                         <% } else if ("empty_cart".equals(error)) { %>
@@ -415,7 +375,7 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
                     </div>
                 <% } %>
                 <% if (checkoutBlockedByPriceLimit) { %>
-                    <div style="background-color: #fff3cd; color: #856404; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ffeeba;">
+                    <div class="alert" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
                         <% if (itemPriceLimitExceeded) { %>
                             One or more items exceed the Rs 10,000 purchase limit.
                         <% } else { %>
@@ -423,35 +383,45 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
                         <% } %>
                     </div>
                 <% } %>
-                <label>Name</label>
-                <input type="text" name="name" value="<%= checkoutName != null ? checkoutName : "" %>" required>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="name" value="<%= checkoutName != null ? checkoutName : "" %>" required>
+                </div>
 
-                <label>Phone</label>
-                <input type="text" name="phone" value="<%= checkoutPhone != null ? checkoutPhone : "" %>" required>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" name="phone" value="<%= checkoutPhone != null ? checkoutPhone : "" %>" required>
+                </div>
 
-                <label>Email</label>
-                <input type="email" name="email" value="<%= (String) session.getAttribute("checkout_email") != null ? (String) session.getAttribute("checkout_email") : "" %>" required>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" value="<%= (String) session.getAttribute("checkout_email") != null ? (String) session.getAttribute("checkout_email") : "" %>" required>
+                </div>
 
                 <!-- Location selection: type address or pick on map -->
-                <label>Delivery Location</label>
-                <input type="text" id="map-search-input" placeholder="Type your location or select on map">
+                <div class="form-group">
+                    <label>Delivery Location</label>
+                    <input type="text" id="map-search-input" placeholder="Type your location or select on map">
 
-                <!-- Map where user can click to set location -->
-                <div id="checkout-map" style="width: 100%; height: 260px; margin: 10px 0; border-radius: 10px; overflow: hidden;"></div>
+                    <!-- Map where user can click to set location -->
+                    <div id="checkout-map" style="width: 100%; height: 260px; margin: 10px 0; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border);"></div>
 
-                <p style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px;">
-                    You can <strong>type your address</strong> to search, or <strong>click on the map</strong> to set your exact location.
-                </p>
+                    <p style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px;">
+                        You can <strong>type your address</strong> to search, or <strong>click on the map</strong> to set your exact location.
+                    </p>
+                </div>
 
                 <!-- Hidden fields to submit coordinates with the order -->
                 <input type="hidden" id="latitude" name="latitude">
                 <input type="hidden" id="longitude" name="longitude">
 
-                <label>Address</label>
-                <input type="text" id="address-input" name="address" value="<%= checkoutAddress != null ? checkoutAddress : "" %>" required>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="address-input" name="address" value="<%= checkoutAddress != null ? checkoutAddress : "" %>" required>
+                </div>
 
                 <div class="address-row">
-                    <div>
+                    <div class="form-group">
                         <label>Province</label>
                         <select name="province" required>
                             <option value="">Select Province</option>
@@ -466,7 +436,7 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
                             <option value="Uva" <%= "Uva".equals(checkoutProvince) ? "selected" : "" %>>Uva</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label>District</label>
                         <select name="district" required>
                             <option value="">Select District</option>
@@ -497,7 +467,7 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
                             <option value="Kegalle" <%= "Kegalle".equals(checkoutDistrict) ? "selected" : "" %>>Kegalle</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="form-group">
                         <label>City</label>
                         <input type="text" name="city" value="<%= checkoutCity != null ? checkoutCity : "" %>" required>
                     </div>
@@ -519,7 +489,7 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
 
             <!-- Right: Order Summary -->
             <div class="order-summary">
-                <h2>Order Summary</h2>
+                <h2 class="order-summary-title">Order Summary</h2>
 
                 <% 
                 double totalDiscount = 0; 
@@ -594,7 +564,7 @@ if (checkoutDoorstepConsent != null) session.removeAttribute("checkout_doorstep_
                 </div>
 
                 <!-- Place Order button -->
-                <button type="submit" class="place-order" <%= checkoutBlockedByPriceLimit ? "disabled title=\"Orders above Rs 10,000 are view only\"" : "" %>>Place Order</button>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px;" <%= checkoutBlockedByPriceLimit ? "disabled title=\"Orders above Rs 10,000 are view only\"" : "" %>>Place Order</button>
             </div>
         </div>
     </form>

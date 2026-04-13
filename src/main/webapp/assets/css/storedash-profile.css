@@ -3,6 +3,7 @@
 .container h2 {
   font-size: 1.6em;
   margin-bottom: 20px;
+  margin-top: 50px;
   color: var(--foreground);
 }
 

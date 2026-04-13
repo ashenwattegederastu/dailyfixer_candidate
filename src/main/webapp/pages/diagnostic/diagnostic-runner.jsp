@@ -121,7 +121,7 @@
                     }
 
                     /* Navigation */
-                    .nav-buttons {
+                    .wizard-buttons {
                         display: flex;
                         justify-content: space-between;
                         margin-top: 2rem;
@@ -276,7 +276,7 @@
             <body>
                 <%@ include file="/pages/shared/header.jsp" %>
 
-                    <div class="runner-container" style="margin-top: 100px;">
+                    <div class="runner-container" style="margin-top: 30px;">
                         <div id="loadingState" class="loading">
                             Loading diagnostic guide...
                         </div>
@@ -322,7 +322,7 @@
                                 </div>
 
                                 <!-- Navigation -->
-                                <div class="nav-buttons">
+                                <div class="wizard-buttons">
                                     <button class="back-btn" id="backBtn" onclick="goBack()"
                                         style="visibility: hidden;">
                                         ← Back

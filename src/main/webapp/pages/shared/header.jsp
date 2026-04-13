@@ -37,8 +37,8 @@
                 <ul class="nav-links" id="nav-links">
                     <li><a href="${pageContext.request.contextPath}/pages/diagnostic/diagnostic-browse.jsp">Diagnostic
                             Tool</a></li>
-                    <li><a href="${pageContext.request.contextPath}/guides">View Repair Guides</a></li>
-                    <li><a href="${pageContext.request.contextPath}/services">Book a Technician</a></li>
+                    <li><a href="${pageContext.request.contextPath}/guides">Repair Guides</a></li>
+                    <li><a href="${pageContext.request.contextPath}/services">Technicians</a></li>
                     <li><a href="${pageContext.request.contextPath}/pages/stores/store_main.jsp">Marketplace</a></li>
                 </ul>
 

@@ -29,7 +29,7 @@ public class DBConnection {
             + "&allowPublicKeyRetrieval=true";
 
     private static final String USER = "root";
-    private static final String PASS = "Poojani@123";
+    private static final String PASS = "admin";
 
     public static Connection getConnection()
             throws SQLException, ClassNotFoundException {
