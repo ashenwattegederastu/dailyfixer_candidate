@@ -101,13 +101,6 @@
                             </a>
                         </li>
                         <li>
-                            <a href="${pageContext.request.contextPath}/technician/dashboard#account-standing"
-                                id="nav-standing">
-                                <i class="ph ph-shield"></i>
-                                Account Standing
-                            </a>
-                        </li>
-                        <li>
                             <a href="${pageContext.request.contextPath}/pages/guides/my-guides.jsp" id="nav-my-guides">
                                 <i class="ph ph-book-open-text"></i>
                                 My Guides
