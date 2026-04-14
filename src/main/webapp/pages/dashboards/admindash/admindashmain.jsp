@@ -26,7 +26,6 @@
         .main-content {
             flex: 1;
             margin-left: 240px;
-            margin-top: 83px;
             padding: 40px 30px;
         }
         @media (max-width: 900px) {
@@ -177,20 +176,6 @@
                 <div class="kpi-label">Total Users</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-value">${activeUsers}</div>
-                <div class="kpi-label">Active Users</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-value">${ordersLast24h}</div>
-                <div class="kpi-label">Orders (24 h)</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-value">
-                    <fmt:formatNumber value="${revenueLast24h}" type="number" groupingUsed="true" maxFractionDigits="2"/>
-                </div>
-                <div class="kpi-label">Revenue 24 h (LKR)</div>
-            </div>
-            <div class="kpi-card">
                 <div class="kpi-value">${totalBookings}</div>
                 <div class="kpi-label">Total Bookings</div>
             </div>
@@ -201,10 +186,6 @@
             <div class="kpi-card">
                 <div class="kpi-value">${totalStores}</div>
                 <div class="kpi-label">Stores</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-value">${totalProducts}</div>
-                <div class="kpi-label">Products</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-value">${totalGuides}</div>
@@ -247,7 +228,7 @@
         <!-- ════════ Date-range selector ════════ -->
         <div class="range-bar">
             <span style="font-weight:600;color:var(--foreground);margin-right:6px;">Trend range:</span>
-            <c:forEach var="d" items="${'7,14,30,90'}" >
+            <c:forEach var="d" items="${'7,14,30,90,120'}" >
                 <%-- manual options --%>
             </c:forEach>
             <c:choose>
@@ -265,6 +246,10 @@
             <c:choose>
                 <c:when test="${days == 90}"><span class="active-range">90 days</span></c:when>
                 <c:otherwise><a href="${pageContext.request.contextPath}/admin/dashboard?days=90">90 days</a></c:otherwise>
+            </c:choose>
+            <c:choose>
+                <c:when test="${days == 120}"><span class="active-range">120 days</span></c:when>
+                <c:otherwise><a href="${pageContext.request.contextPath}/admin/dashboard?days=120">120 days</a></c:otherwise>
             </c:choose>
         </div>
 

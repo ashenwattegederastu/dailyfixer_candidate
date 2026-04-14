@@ -20,7 +20,6 @@
                         .main-content {
                             flex: 1;
                             margin-left: 240px;
-                            margin-top: 83px;
                             padding: 40px 30px;
                         }
 

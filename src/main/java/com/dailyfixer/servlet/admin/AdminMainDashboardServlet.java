@@ -52,7 +52,7 @@ public class AdminMainDashboardServlet extends HttpServlet {
         req.setAttribute("flaggedGuides",           dao.getFlaggedGuidesCount());
 
         // ── Chart data (maps are serialised to JSON in JSP) ──
-        int days = 7;
+        int days = 30;
         String daysParam = req.getParameter("days");
         if (daysParam != null) {
             try { days = Integer.parseInt(daysParam); } catch (NumberFormatException ignored) {}

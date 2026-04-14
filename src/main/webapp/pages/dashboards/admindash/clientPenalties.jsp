@@ -27,7 +27,6 @@
 .container {
     flex: 1;
     margin-left: 240px;
-    margin-top: 83px;
     padding: 30px;
     background-color: var(--background);
 }

@@ -37,7 +37,7 @@ public class LoginServlet extends HttpServlet {
 
                 switch (role) {
                     case "admin":
-                        resp.sendRedirect(req.getContextPath() + "/pages/dashboards/admindash/admindashmain.jsp");
+                        resp.sendRedirect(req.getContextPath() + "/admin/dashboard");
                         break;
                     case "volunteer":
                         resp.sendRedirect(req.getContextPath() + "/pages/dashboards/volunteerdash/volunteerdashmain.jsp");
