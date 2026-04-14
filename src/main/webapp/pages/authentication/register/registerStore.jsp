@@ -171,6 +171,22 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .error-text {
+            color: var(--destructive);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .server-error {
+            background-color: var(--destructive);
+            color: white;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -190,6 +206,8 @@
                     <div class="server-error">${errorMsg}</div>
                 </c:if>
 
+                <div id="formError" class="server-error" style="display:none;"></div>
+
                 <form id="registerForm" method="post" action="${pageContext.request.contextPath}/registerStore"
                     onsubmit="return submitForm(event);">
                     <input type="hidden" name="latitude" id="latitude">
@@ -202,21 +220,31 @@
                         <div class="form-group">
                             <label>First name</label>
                             <input type="text" name="firstName" id="firstName" required>
+                            <div id="firstNameError" class="error-text"></div>
                         </div>
                         <div class="form-group">
                             <label>Last name</label>
                             <input type="text" name="lastName" id="lastName" required>
+                            <div id="lastNameError" class="error-text"></div>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" id="username" required>
+                        <div id="usernameError" class="error-text"></div>
                     </div>
 
                     <div class="form-cols">
                         <div class="form-group">
-                            <label>Username</label>
-                            <input type="text" name="username" id="username" required>
-                        </div>
-                        <div class="form-group">
                             <label>Password</label>
                             <input type="password" name="password" id="password" required>
+                            <div id="passwordError" class="error-text"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" name="confirmPassword" id="confirmPassword" required>
+                            <div id="confirmPasswordError" class="error-text"></div>
                         </div>
                     </div>
 
@@ -224,10 +252,12 @@
                         <div class="form-group">
                             <label>Email</label>
                             <input type="email" name="email" id="email" required>
+                            <div id="emailError" class="error-text"></div>
                         </div>
                         <div class="form-group">
                             <label>Phone number</label>
                             <input type="text" name="phone" id="phone">
+                            <div id="phoneError" class="error-text"></div>
                         </div>
                     </div>
 
@@ -237,6 +267,7 @@
                     <div class="form-group">
                         <label>Store name</label>
                         <input type="text" name="storeName" id="storeName" required>
+                        <div id="storeNameError" class="error-text"></div>
                     </div>
 
                     <div class="form-cols">
@@ -248,6 +279,7 @@
                                     <option value="<%=c%>"><%=c%></option>
                                 <% } %>
                             </select>
+                            <div id="storeCityError" class="error-text"></div>
                         </div>
                         <div class="form-group">
                             <label>Store type</label>
@@ -258,6 +290,7 @@
                                 <option value="vehicle repair">Vehicle Repair</option>
                                 <option value="other">Other</option>
                             </select>
+                            <div id="storeTypeError" class="error-text"></div>
                         </div>
                     </div>
 
@@ -418,27 +451,45 @@
 
                 // Client-side validation
                 function validateForm() {
-                    var u = document.getElementById('username').value.trim();
-                    var em = document.getElementById('email').value.trim();
-                    var pw = document.getElementById('password').value;
-                    var sn = document.getElementById('storeName').value.trim();
+                    document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+                    var formError = document.getElementById('formError');
+                    formError.style.display = 'none';
+                    var f = id => document.getElementById(id).value.trim();
+                    var hasError = false;
+
+                    if (!f('firstName'))  { document.getElementById('firstNameError').textContent = 'First name required'; hasError = true; }
+                    if (!f('lastName'))   { document.getElementById('lastNameError').textContent = 'Last name required'; hasError = true; }
+                    if (!f('username'))   { document.getElementById('usernameError').textContent = 'Username required'; hasError = true; }
+                    if (!f('storeName'))  { document.getElementById('storeNameError').textContent = 'Store name required'; hasError = true; }
+                    if (!f('storeCity'))  { document.getElementById('storeCityError').textContent = 'Store city required'; hasError = true; }
+                    if (!f('storeType'))  { document.getElementById('storeTypeError').textContent = 'Store type required'; hasError = true; }
+
+                    var emailVal = f('email');
+                    if (!emailVal) { document.getElementById('emailError').textContent = 'Email required'; hasError = true; }
+                    else {
+                        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(emailVal)) { document.getElementById('emailError').textContent = 'Invalid email format'; hasError = true; }
+                    }
+
+                    var pw  = document.getElementById('password').value;
+                    var cpw = document.getElementById('confirmPassword').value;
+                    if (!pw || pw.length < 6) { document.getElementById('passwordError').textContent = 'Password required (min 6 chars)'; hasError = true; }
+                    if (!cpw) { document.getElementById('confirmPasswordError').textContent = 'Please confirm your password'; hasError = true; }
+                    else if (pw !== cpw) { document.getElementById('confirmPasswordError').textContent = 'Passwords do not match'; hasError = true; }
+
+                    var phoneVal = f('phone').replace(/\D/g, '');
+                    if (phoneVal && phoneVal.length !== 10) { document.getElementById('phoneError').textContent = 'Phone must be exactly 10 digits'; hasError = true; }
+
                     var lat = document.getElementById('latitude').value;
                     var lng = document.getElementById('longitude').value;
-                    var sc = document.getElementById('storeCity').value;
-
-                    var err = [];
-                    if (!u) err.push("Username required");
-                    if (!em) err.push("Email required");
-                    if (!pw || pw.length < 6) err.push("Password required (min 6 chars)");
-                    if (!sn) err.push("Store name required");
-                    if (!lat || !lng || lat === '' || lng === '') err.push("Please select a store location on the map.");
-                    if (!sc) err.push("Store city required");
-
-                    if (err.length) {
-                        alert(err.join("\n"));
-                        return false;
+                    if (!lat || !lng || lat === '' || lng === '') {
+                        formError.textContent = 'Please select a store location on the map.';
+                        formError.style.display = 'block';
+                        hasError = true;
                     }
-                    return true;
+
+                    if (hasError) window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return !hasError;
                 }
 
                 // Submit form - geocode if no map selection, else use selected coords

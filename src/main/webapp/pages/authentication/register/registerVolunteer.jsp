@@ -417,7 +417,10 @@
                         <div class="step-circle" id="stepCircle4">4</div>
                     </div>
 
-                    <% String serverError=(String) request.getAttribute("errorMsg"); %>
+                    <%
+                        String serverError = (String) request.getAttribute("errorMsg");
+                        if (serverError == null) serverError = (String) request.getAttribute("error");
+                    %>
                         <% if (serverError !=null) { %>
                             <div class="server-error">
                                 <%= serverError %>

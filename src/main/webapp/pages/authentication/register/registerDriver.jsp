@@ -198,34 +198,40 @@
                     <div class="form-group">
                         <label for="first_name">First Name <span class="required-star">*</span></label>
                         <input type="text" name="first_name" id="first_name" placeholder="First Name" required>
+                        <div id="firstNameError" class="error-text"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="last_name">Last Name <span class="required-star">*</span></label>
                         <input type="text" name="last_name" id="last_name" placeholder="Last Name" required>
+                        <div id="lastNameError" class="error-text"></div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="username">Username <span class="required-star">*</span></label>
                     <input type="text" name="username" id="username" placeholder="Username" required>
+                    <div id="usernameError" class="error-text"></div>
                 </div>
 
                 <div class="form-cols">
                     <div class="form-group">
                         <label for="email">Email <span class="required-star">*</span></label>
                         <input type="email" name="email" id="email" placeholder="Email" required>
+                        <div id="emailError" class="error-text"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="phone_number">Phone Number <span class="required-star">*</span></label>
                         <input type="tel" name="phone_number" id="phone_number" placeholder="Phone Number" required>
+                        <div id="phoneError" class="error-text"></div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="city">City <span class="required-star">*</span></label>
                     <input type="text" name="city" id="city" placeholder="City" required>
+                    <div id="cityError" class="error-text"></div>
                 </div>
 
                 <!-- Identification Documents -->
@@ -295,12 +301,14 @@
                     <div class="form-group">
                         <label for="password">Password <span class="required-star">*</span></label>
                         <input type="password" name="password" id="password" placeholder="Min 6 characters" required>
+                        <div id="passwordError" class="error-text"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password <span class="required-star">*</span></label>
                         <input type="password" name="confirmPassword" id="confirmPassword"
                                placeholder="Confirm Password" required>
+                        <div id="confirmPasswordError" class="error-text"></div>
                     </div>
                 </div>
 
@@ -392,24 +400,39 @@
         }
 
         document.getElementById('registerForm').addEventListener('submit', function(e) {
-            var pw   = document.getElementById("password").value;
-            var cpw  = document.getElementById("confirmPassword").value;
-            var email = document.getElementById("email").value;
-            var phone = document.getElementById("phone_number").value;
-            var nic   = document.getElementById("nic_number").value.trim();
+            document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+            var hasFieldError = false;
+            var fileErrors = "";
+            var f = id => document.getElementById(id).value.trim();
+
+            if (!f('first_name')) { document.getElementById('firstNameError').textContent = 'First name required'; hasFieldError = true; }
+            if (!f('last_name'))  { document.getElementById('lastNameError').textContent = 'Last name required'; hasFieldError = true; }
+            if (!f('username'))   { document.getElementById('usernameError').textContent = 'Username required'; hasFieldError = true; }
+            if (!f('city'))       { document.getElementById('cityError').textContent = 'City required'; hasFieldError = true; }
+
+            var emailVal = f('email');
+            if (!emailVal) { document.getElementById('emailError').textContent = 'Email required'; hasFieldError = true; }
+            else {
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailVal)) { document.getElementById('emailError').textContent = 'Invalid email format'; hasFieldError = true; }
+            }
+
+            var phoneVal = f('phone_number').replace(/\D/g, '');
+            if (!phoneVal) { document.getElementById('phoneError').textContent = 'Phone number required'; hasFieldError = true; }
+            else if (phoneVal.length !== 10) { document.getElementById('phoneError').textContent = 'Phone must be exactly 10 digits'; hasFieldError = true; }
+
+            var pw  = document.getElementById("password").value;
+            var cpw = document.getElementById("confirmPassword").value;
+            if (pw.length < 6) { document.getElementById('passwordError').textContent = 'Min 6 characters'; hasFieldError = true; }
+            if (pw !== cpw)    { document.getElementById('confirmPasswordError').textContent = 'Passwords do not match'; hasFieldError = true; }
+
+            var nic    = document.getElementById("nic_number").value.trim();
             var policy = document.getElementById("policy_accepted").checked;
-
-            var errorMsg = "";
-
-            if (!email.includes("@")) errorMsg += "Invalid email format.<br>";
-            if (pw.length < 6) errorMsg += "Password must be at least 6 characters.<br>";
-            if (pw !== cpw) errorMsg += "Passwords do not match.<br>";
-            if (phone.length < 10) errorMsg += "Enter a valid phone number.<br>";
 
             // NIC validation: 9 digits + V/X or 12 digits
             var nicRegex = /^\d{9}[VvXx]$|^\d{12}$/;
             if (!nicRegex.test(nic)) {
-                errorMsg += "Invalid NIC format. Use 9 digits + V/X or 12 digits.<br>";
+                fileErrors += "Invalid NIC format. Use 9 digits + V/X or 12 digits.<br>";
                 document.getElementById("nicError").textContent = "Invalid NIC format";
             } else {
                 document.getElementById("nicError").textContent = "";
@@ -421,17 +444,17 @@
             var profile  = document.getElementById("profile_picture").files.length;
             var licFront = document.getElementById("license_front").files.length;
 
-            if (nicFront === 0) errorMsg += "NIC front photo is required.<br>";
-            if (nicBack === 0) errorMsg += "NIC back photo is required.<br>";
-            if (profile === 0) errorMsg += "Profile picture is required.<br>";
-            if (licFront === 0) errorMsg += "License front photo is required.<br>";
+            if (nicFront === 0) fileErrors += "NIC front photo is required.<br>";
+            if (nicBack === 0)  fileErrors += "NIC back photo is required.<br>";
+            if (profile === 0)  fileErrors += "Profile picture is required.<br>";
+            if (licFront === 0) fileErrors += "License front photo is required.<br>";
 
-            if (!policy) errorMsg += "You must accept the driver policies.<br>";
+            if (!policy) fileErrors += "You must accept the driver policies.<br>";
 
             var errorDiv = document.getElementById("error");
-            errorDiv.innerHTML = errorMsg;
+            errorDiv.innerHTML = fileErrors;
 
-            if (errorMsg !== "") {
+            if (fileErrors !== "" || hasFieldError) {
                 e.preventDefault();
                 window.scrollTo({top: 0, behavior: 'smooth'});
             }

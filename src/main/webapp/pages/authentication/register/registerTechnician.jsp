@@ -262,10 +262,12 @@
                     <div class="form-group">
                         <label for="firstName">First Name <span class="required-star">*</span></label>
                         <input type="text" name="firstName" id="firstName" placeholder="First Name" required>
+                        <div id="firstNameError" class="error-text"></div>
                     </div>
                     <div class="form-group">
                         <label for="lastName">Last Name <span class="required-star">*</span></label>
                         <input type="text" name="lastName" id="lastName" placeholder="Last Name" required>
+                        <div id="lastNameError" class="error-text"></div>
                     </div>
                 </div>
 
@@ -273,10 +275,12 @@
                     <div class="form-group">
                         <label for="username">Username <span class="required-star">*</span></label>
                         <input type="text" name="username" id="username" placeholder="Username" required>
+                        <div id="usernameError" class="error-text"></div>
                     </div>
                     <div class="form-group">
                         <label for="email">Email <span class="required-star">*</span></label>
                         <input type="email" name="email" id="email" placeholder="Email" required>
+                        <div id="emailError" class="error-text"></div>
                     </div>
                 </div>
 
@@ -284,10 +288,12 @@
                     <div class="form-group">
                         <label for="password">Password <span class="required-star">*</span></label>
                         <input type="password" name="password" id="password" placeholder="Min 6 characters" required>
+                        <div id="passwordError" class="error-text"></div>
                     </div>
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password <span class="required-star">*</span></label>
                         <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm Password" required>
+                        <div id="confirmPasswordError" class="error-text"></div>
                     </div>
                 </div>
 
@@ -298,6 +304,7 @@
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
                         <input type="text" name="phone" id="phone" placeholder="Phone Number">
+                        <div id="phoneError" class="error-text"></div>
                     </div>
                     <div class="form-group">
                         <label for="city">City <span class="required-star">*</span></label>
@@ -472,13 +479,29 @@
         }
 
         document.getElementById('registerForm').addEventListener('submit', function(e) {
+            document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+            document.getElementById('clientError').style.display = 'none';
             var errors = [];
+            var hasFieldError = false;
+            var f = id => document.getElementById(id).value.trim();
+
+            if (!f('firstName')) { document.getElementById('firstNameError').textContent = 'First name required'; hasFieldError = true; }
+            if (!f('lastName'))  { document.getElementById('lastNameError').textContent = 'Last name required'; hasFieldError = true; }
+            if (!f('username'))  { document.getElementById('usernameError').textContent = 'Username required'; hasFieldError = true; }
+            if (!f('email'))     { document.getElementById('emailError').textContent = 'Email required'; hasFieldError = true; }
+            else {
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(f('email'))) { document.getElementById('emailError').textContent = 'Invalid email format'; hasFieldError = true; }
+            }
 
             var pw  = document.getElementById('password').value;
             var cpw = document.getElementById('confirmPassword').value;
 
-            if (pw.length < 6) errors.push('Password must be at least 6 characters.');
-            if (pw !== cpw)    errors.push('Passwords do not match.');
+            if (pw.length < 6) { document.getElementById('passwordError').textContent = 'Min 6 characters'; hasFieldError = true; }
+            if (pw !== cpw)    { document.getElementById('confirmPasswordError').textContent = 'Passwords do not match'; hasFieldError = true; }
+
+            var phoneVal = f('phone').replace(/\D/g, '');
+            if (phoneVal && phoneVal.length !== 10) { document.getElementById('phoneError').textContent = 'Phone must be exactly 10 digits'; hasFieldError = true; }
 
             // Profile picture required
             var profileFiles = document.getElementById('profile_picture').files;
@@ -521,10 +544,12 @@
                 }
             }
 
-            if (errors.length > 0) {
-                var div = document.getElementById('clientError');
-                div.innerHTML = errors.join('<br>');
-                div.style.display = 'block';
+            if (errors.length > 0 || hasFieldError) {
+                if (errors.length > 0) {
+                    var div = document.getElementById('clientError');
+                    div.innerHTML = errors.join('<br>');
+                    div.style.display = 'block';
+                }
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
