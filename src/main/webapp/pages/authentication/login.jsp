@@ -8,6 +8,35 @@
     <title>Login - DailyFixer</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
+    <style>
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .form-input {
+            width: 100%;
+            padding-right: 70px; /* more space so text doesn't hit button */
+            box-sizing: border-box;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+
+            background: transparent;
+            border: none;
+            color: #555;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .toggle-btn:hover {
+            color: #000;
+        }
+    </style>
 </head>
 <body>
 
@@ -44,13 +73,16 @@
 
             <div class="form-group">
                 <label for="password" class="form-label">Password</label>
-                <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        class="form-input"
-                        placeholder="Enter your password"
-                        required>
+                <div class="password-input-wrapper">
+                    <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-input"
+                            placeholder="Enter your password"
+                            required>
+                    <button type="button" class="toggle-btn" onclick="togglePassword()">Show</button>
+                </div>
             </div>
 
             <!-- Improved button styling -->
@@ -72,6 +104,19 @@
         </div>
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/assets/js/password-toggle.js"></script>
+<script>
+    function togglePassword() {
+        const input = document.getElementById("password");
+        const btn = event.target;
+
+        if (input.type === "password") {
+            input.type = "text";
+            btn.textContent = "Hide";
+        } else {
+            input.type = "password";
+            btn.textContent = "Show";
+        }
+    }
+</script>
 </body>
 </html>
