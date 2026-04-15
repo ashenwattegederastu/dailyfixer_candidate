@@ -4,17 +4,6 @@ import com.dailyfixer.model.VolunteerStats;
 
 public class ReputationUtils {
 
-    // Weights
-    private static final double W_QUALITY = 0.4;
-    private static final double W_ENGAGEMENT = 0.25;
-    private static final double W_CONTRIBUTION = 0.2;
-    private static final double W_APPROVAL = 0.15;
-
-    // Caps and Constants
-    // Caps and Constants
-    // private static final int MAX_CONTRIBUTION_GUIDES = 20; // Removed per user
-    // request
-
     // Tier thresholds
     private static final double DIAGNOSTIC_CONTRIBUTOR_THRESHOLD = 31.0;
 
@@ -30,63 +19,18 @@ public class ReputationUtils {
         if (stats == null)
             return;
 
-        // 1. Guide Quality Score: (Likes - Dislikes) / Total Guides
-        double qualityScore = 0;
-        if (stats.getTotalGuides() > 0) {
-            // Slight penalty for dislikes (1.2x)
-            double netScore = stats.getTotalLikes() - (stats.getTotalDislikes() * 1.2);
-            qualityScore = netScore / stats.getTotalGuides();
-        }
-        // Normalize quality score (ensure it's not negative for display, or keep it
-        // raw?)
-        // Let's cap minimum at 0 for simplicity in this model unless negative
-        // reputation is desired.
-        // The prompt says "Penalize dislikes", so negative is possible.
-        // We will keep it raw but maybe scale it. For now, raw.
+        // Guide contribution: 8 points per guide published
+        double guidePoints = stats.getTotalGuides() * 8.0;
 
-        // 2. Engagement Score: log(1 + Total Views)
-        double engagementScore = Math.log10(1 + stats.getTotalViews()) * 10; // Scaling by 10 to make it meaningful
+        // Approval contribution: approval rating is already 0-100 (%)
+        double approvalPoints = stats.getApprovalRating() * 0.7;
 
-        // 3. Contribution Score: Based on guides count, capped
-        // 3. Contribution Score: Based on guides count (Uncapped)
-        double contributionScore = stats.getTotalGuides() * 5; // 5 points per guide
+        double reputation = Math.round((guidePoints + approvalPoints) * 100.0) / 100.0;
 
-        // 4. Approval Ratio: Likes / (Likes + Dislikes)
-        double approvalRatio = 0;
-        int totalReactions = stats.getTotalLikes() + stats.getTotalDislikes();
-        if (totalReactions > 0) {
-            approvalRatio = (double) stats.getTotalLikes() / totalReactions;
-        }
-
-        // Final Calculation
-        // Adjusted formula to bring numbers to a 0-100+ scale
-        // Quality: can be small (e.g. 5 likes/guide). Let's scale by 10.
-        // Approval Ratio: 0-1. Scale by 100? Prompt says "0.15 * Approval Ratio * 10"
-        // -> 1.5 max?
-        // Let's follow the prompt's example structure but adjust scales to be visible.
-
-        // Prompt Formula:
-        // (0.4 * Quality) + (0.25 * Engagement) + (0.2 * Contribution) + (0.15 *
-        // Approval * 10)
-
-        double weightedQuality = W_QUALITY * (qualityScore * 10); // Scale up quality
-        double weightedEngagement = W_ENGAGEMENT * engagementScore; // Log is small, logic handled above
-        double weightedContribution = W_CONTRIBUTION * contributionScore; // 0-100 range
-        double weightedApproval = W_APPROVAL * (approvalRatio * 100); // 0-100 range
-
-        double reputation = weightedQuality + weightedEngagement + weightedContribution + weightedApproval;
-
-        // Ensure no negative total reputation
-        if (reputation < 0)
-            reputation = 0;
-
-        stats.setQualityScore(Math.round(weightedQuality * 100.0) / 100.0);
-        stats.setEngagementScore(Math.round(weightedEngagement * 100.0) / 100.0);
-        stats.setContributionScore(Math.round(weightedContribution * 100.0) / 100.0);
-        // Storing approval part score isn't explicitly in stats model, but we have
-        // approval rating.
-
-        stats.setReputationScore(Math.round(reputation * 100.0) / 100.0);
+        stats.setContributionScore(Math.round(guidePoints * 100.0) / 100.0);
+        stats.setQualityScore(Math.round(approvalPoints * 100.0) / 100.0);
+        stats.setEngagementScore(0);
+        stats.setReputationScore(reputation);
     }
 
     public static String getBadgeForScore(double score) {

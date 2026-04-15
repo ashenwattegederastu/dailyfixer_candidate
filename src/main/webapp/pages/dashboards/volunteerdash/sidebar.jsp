@@ -63,13 +63,6 @@
                             </a>
                         </li>
                         <li>
-                            <a href="${pageContext.request.contextPath}/pages/dashboards/volunteerdash/notifications.jsp"
-                                id="nav-notifications">
-                                <i class="ph ph-bell"></i>
-                                Notifications
-                            </a>
-                        </li>
-                        <li>
                             <a href="${pageContext.request.contextPath}/pages/dashboards/volunteerdash/diagnostic-trees.jsp"
                                 id="nav-diagnostic-trees">
                                 <i class="ph ph-tree-structure"></i>
@@ -134,8 +127,6 @@
                         document.getElementById('nav-all-guides')?.classList.add('active');
                     } else if (currentPath.includes('/guideComments.jsp')) {
                         document.getElementById('nav-guide-comments')?.classList.add('active');
-                    } else if (currentPath.includes('#')) {
-                        document.getElementById('nav-notifications')?.classList.add('active');
                     } else if (currentPath.includes('/diagnostic-trees.jsp') || currentPath.includes('/diagnostic-tree-builder.jsp')) {
                         document.getElementById('nav-diagnostic-trees')?.classList.add('active');
                     } else if (currentPath.includes('/myProfile.jsp')) {

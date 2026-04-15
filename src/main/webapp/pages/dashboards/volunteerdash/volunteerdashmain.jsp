@@ -429,12 +429,10 @@
                             document.addEventListener("DOMContentLoaded", function () {
                                 // Chart data from server
                                 const chartData = {
-                                    labels: ['Quality', 'Engagement', 'Contribution', 'Approval'],
+                                    labels: ['Guides', 'Approval'],
                                     values: [
-                                        <%= stats.getQualityScore() %>,
-                                        <%= stats.getEngagementScore() %>,
                                         <%= stats.getContributionScore() %>,
-                                        <%= stats.getApprovalRating() %>
+                                        <%= stats.getQualityScore() %>
                                     ]
                                 };
 
