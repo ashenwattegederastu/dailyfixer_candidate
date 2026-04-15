@@ -335,6 +335,10 @@
                 <form action="${pageContext.request.contextPath}/pages/authentication/editProfile.jsp" method="get">
                     <button type="submit" class="btn edit">Edit Account Info</button>
                 </form>
+                <form action="${pageContext.request.contextPath}/SoftDeleteUserServlet" method="post"
+                      onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+                    <button type="submit" class="btn reset">Delete Account</button>
+                </form>
             </div>
         </div>
     </div>

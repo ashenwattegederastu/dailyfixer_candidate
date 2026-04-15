@@ -247,6 +247,19 @@
         <body>
             <%@ include file="/pages/shared/header.jsp" %>
 
+                <c:choose>
+                    <c:when test="${empty sessionScope.currentUser}">
+                        <div style="text-align:center; padding: 8rem 2rem; margin-top: 100px;">
+                            <i class="ph ph-lock" style="font-size: 4rem; color: var(--muted-foreground);"></i>
+                            <h2 style="margin: 1rem 0 0.5rem; color: var(--foreground);">Login Required</h2>
+                            <p style="color: var(--muted-foreground); margin-bottom: 1.5rem;">You need to be logged in to access the Diagnostic Tool.</p>
+                            <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp"
+                               style="padding: 0.75rem 2rem; background: var(--primary); color: var(--primary-foreground); border-radius: var(--radius-lg); text-decoration: none; font-weight: 600;">
+                                Login
+                            </a>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
                 <div class="diagnostic-container" style="margin-top: 100px;">
                     <div class="page-title">
                         <h1>Diagnostic Tool</h1>
@@ -292,6 +305,8 @@
                         <div class="tree-list" id="searchResultsList"></div>
                     </div>
                 </div>
+                    </c:otherwise>
+                </c:choose>
 
 <%--                <%@ include file="/pages/shared/footer.jsp" %>--%>
 

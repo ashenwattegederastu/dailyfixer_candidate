@@ -241,4 +241,25 @@ public class UserDAO {
             return false;
         }
     }
+
+    public boolean softDeleteUser(int userId) {
+        String archive = "INSERT INTO deleted_users (user_id, first_name, last_name, username, email, phone_number, city, role) "
+                       + "SELECT user_id, first_name, last_name, username, email, phone_number, city, role "
+                       + "FROM users WHERE user_id = ?";
+        String suspend = "UPDATE users SET status = 'suspended' WHERE user_id = ?";
+        try (Connection con = DBConnection.getConnection()) {
+            try (PreparedStatement ps = con.prepareStatement(archive)) {
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = con.prepareStatement(suspend)) {
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
