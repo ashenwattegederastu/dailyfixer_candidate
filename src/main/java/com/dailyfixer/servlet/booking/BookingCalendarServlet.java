@@ -33,7 +33,7 @@ public class BookingCalendarServlet extends HttpServlet {
 
             // Load all active statuses the technician needs to see
             List<Booking> bookings = new ArrayList<>();
-            for (String status : new String[]{"ACCEPTED", "IN_PROGRESS", "TECHNICIAN_COMPLETED", "RESCHEDULE_PENDING", "NO_SHOW", "CLIENT_NO_SHOW"}) {
+            for (String status : new String[]{"ACCEPTED", "IN_PROGRESS", "TECHNICIAN_COMPLETED", "RESCHEDULE_PENDING"}) {
                 bookings.addAll(bookingDAO.getBookingsByTechnicianAndStatus(currentUser.getUserId(), status));
             }
 

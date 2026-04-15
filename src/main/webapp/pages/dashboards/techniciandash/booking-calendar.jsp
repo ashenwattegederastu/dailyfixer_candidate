@@ -4,627 +4,30 @@
 <%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
 <%@ taglib uri="jakarta.tags.functions" prefix="fn" %>
 <!DOCTYPE html>
-        <html lang="en">
+<html lang="en">
 
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>My Bookings - Technician Dashboard</title>
-            <link
-                href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-                rel="stylesheet">
-            <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
-            <style>
-                /* ── View Toggle ───────────────────────────────── */
-                .page-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    flex-wrap: wrap;
-                    gap: 1rem;
-                    margin-bottom: 1.5rem;
-                }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - Technician Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/booking-calendar.css">
+    <%-- All styles live in booking-calendar.css --%>
+</head>
 
-                .page-header h1 {
-                    font-size: 2rem;
-                    font-weight: 700;
-                    color: var(--foreground);
-                    margin: 0;
-                }
+<body>
+    <jsp:include page="sidebar.jsp" />
 
-                .view-toggle {
-                    display: flex;
-                    background: var(--muted);
-                    border-radius: var(--radius-md);
-                    overflow: hidden;
-                    border: 1px solid var(--border);
-                }
+    <div class="dashboard-container">
+        <!-- Page header -->
+        <div class="page-header">
 
-                .view-toggle button {
-                    padding: 0.6rem 1.25rem;
-                    border: none;
-                    background: transparent;
-                    color: var(--muted-foreground);
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    font-family: var(--font-sans);
-                }
 
-                .view-toggle button.active {
-                    background: var(--primary);
-                    color: var(--primary-foreground);
-                }
 
-                .view-toggle button:not(.active):hover {
-                    background: var(--accent);
-                    color: var(--accent-foreground);
-                }
 
-                /* ── Alert banners ─────────────────────────────── */
-                .alert-banner {
-                    padding: 1rem;
-                    border-radius: var(--radius-md);
-                    margin-bottom: 1rem;
-                    font-weight: 500;
-                }
 
-                .alert-banner.success {
-                    background: oklch(0.6290 0.1902 156.4499);
-                    color: white;
-                }
-
-                .alert-banner.warning {
-                    background: oklch(0.7336 0.1758 50.5517);
-                    color: white;
-                }
-
-                /* ── Empty state ───────────────────────────────── */
-                .empty-state-card {
-                    text-align: center;
-                    padding: 3rem;
-                    background: var(--card);
-                    border-radius: var(--radius);
-                    border: 1px solid var(--border);
-                }
-
-                .empty-state-card p {
-                    font-size: 1.125rem;
-                    color: var(--muted-foreground);
-                }
-
-                /* ── Booking Cards (list view) ─────────────────── */
-                .booking-list {
-                    display: grid;
-                    gap: 1.5rem;
-                }
-
-                .booking-card {
-                    background: var(--card);
-                    border-radius: var(--radius);
-                    padding: 1.5rem;
-                    box-shadow: var(--shadow-sm);
-                    border: 1px solid var(--border);
-                    transition: box-shadow 0.2s ease, transform 0.2s ease;
-                }
-
-                .booking-card:hover {
-                    box-shadow: var(--shadow-md);
-                    transform: translateY(-2px);
-                }
-
-                .booking-card-header {
-                    display: grid;
-                    grid-template-columns: 1fr auto;
-                    gap: 1rem;
-                    margin-bottom: 1rem;
-                }
-
-                .booking-card-header h3 {
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    margin-bottom: 0.5rem;
-                }
-
-                .booking-card-header p {
-                    color: var(--muted-foreground);
-                    margin-bottom: 0.25rem;
-                }
-
-                .status-badge {
-                    display: inline-block;
-                    padding: 0.25rem 0.75rem;
-                    border-radius: var(--radius-sm);
-                    font-size: 0.8rem;
-                    font-weight: 600;
-                    white-space: nowrap;
-                    height: fit-content;
-                }
-
-                .status-badge.accepted {
-                    background: oklch(0.6290 0.1902 156.4499);
-                    color: white;
-                }
-
-                .status-badge.awaiting {
-                    background: var(--primary);
-                    color: var(--primary-foreground);
-                }
-
-                .status-badge.in-progress {
-                    background: oklch(0.55 0.15 250);
-                    color: white;
-                }
-
-                .status-badge.reschedule-pending {
-                    background: oklch(0.75 0.17 75);
-                    color: white;
-                }
-
-                .status-badge.no-show {
-                    background: var(--destructive);
-                    color: var(--destructive-foreground);
-                }
-
-                .info-block {
-                    background: var(--muted);
-                    padding: 1rem;
-                    border-radius: var(--radius-md);
-                    margin-bottom: 1rem;
-                }
-
-                .info-block .label {
-                    font-weight: 600;
-                    margin-bottom: 0.5rem;
-                }
-
-                .info-block p {
-                    color: var(--muted-foreground);
-                }
-
-                .booking-actions {
-                    display: flex;
-                    gap: 1rem;
-                    flex-wrap: wrap;
-                }
-
-                .booking-actions a,
-                .booking-actions button {
-                    flex: 1;
-                    min-width: 150px;
-                    text-align: center;
-                    padding: 0.75rem;
-                    border: none;
-                    border-radius: var(--radius-md);
-                    font-weight: 600;
-                    font-size: 0.9rem;
-                    cursor: pointer;
-                    text-decoration: none;
-                    font-family: var(--font-sans);
-                    transition: all 0.2s ease;
-                }
-
-                .btn-chat {
-                    background: var(--primary);
-                    color: var(--primary-foreground);
-                }
-
-                .btn-complete {
-                    background: oklch(0.6290 0.1902 156.4499);
-                    color: white;
-                }
-
-                .btn-cancel-booking {
-                    background: var(--destructive);
-                    color: var(--destructive-foreground);
-                }
-
-                .booking-actions a:hover,
-                .booking-actions button:hover {
-                    opacity: 0.9;
-                    transform: translateY(-1px);
-                }
-
-                /* ── Calendar View ─────────────────────────────── */
-                .calendar-controls {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 1rem;
-                    flex-wrap: wrap;
-                    gap: 0.75rem;
-                }
-
-                .calendar-nav {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                }
-
-                .calendar-nav button {
-                    background: var(--secondary);
-                    color: var(--secondary-foreground);
-                    border: 1px solid var(--border);
-                    border-radius: var(--radius-md);
-                    padding: 0.5rem 0.9rem;
-                    font-size: 1rem;
-                    cursor: pointer;
-                    font-weight: 600;
-                    transition: all 0.2s ease;
-                    font-family: var(--font-sans);
-                }
-
-                .calendar-nav button:hover {
-                    background: var(--accent);
-                    color: var(--accent-foreground);
-                }
-
-                .calendar-month-label {
-                    font-size: 1.25rem;
-                    font-weight: 700;
-                    color: var(--foreground);
-                    min-width: 200px;
-                    text-align: center;
-                }
-
-                .btn-today {
-                    background: var(--primary);
-                    color: var(--primary-foreground);
-                    border: none;
-                    border-radius: var(--radius-md);
-                    padding: 0.5rem 1rem;
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    font-family: var(--font-sans);
-                }
-
-                .btn-today:hover {
-                    opacity: 0.9;
-                }
-
-                .calendar-grid {
-                    display: grid;
-                    grid-template-columns: repeat(7, 1fr);
-                    background: var(--border);
-                    border: 1px solid var(--border);
-                    border-radius: var(--radius);
-                    overflow: hidden;
-                    gap: 1px;
-                }
-
-                .cal-day-header {
-                    background: var(--muted);
-                    padding: 0.6rem 0.5rem;
-                    text-align: center;
-                    font-weight: 600;
-                    font-size: 0.8rem;
-                    color: var(--muted-foreground);
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                }
-
-                .cal-day {
-                    background: var(--card);
-                    min-height: 110px;
-                    padding: 0.5rem;
-                    display: flex;
-                    flex-direction: column;
-                    transition: background-color 0.2s ease;
-                }
-
-                .cal-day:hover {
-                    background: var(--accent);
-                }
-
-                .cal-day.other-month {
-                    opacity: 0.35;
-                }
-
-                .cal-day.today {
-                    background: oklch(0.6290 0.1902 156.4499 / 0.08);
-                    box-shadow: inset 0 0 0 2px oklch(0.6290 0.1902 156.4499 / 0.3);
-                }
-
-                .cal-day-number {
-                    font-weight: 700;
-                    font-size: 0.85rem;
-                    color: var(--muted-foreground);
-                    margin-bottom: 0.35rem;
-                }
-
-                .cal-day.today .cal-day-number {
-                    color: oklch(0.6290 0.1902 156.4499);
-                }
-
-                .cal-booking-pill {
-                    display: block;
-                    padding: 0.2rem 0.4rem;
-                    border-radius: var(--radius-sm);
-                    font-size: 0.7rem;
-                    font-weight: 600;
-                    margin-bottom: 0.2rem;
-                    cursor: pointer;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    transition: opacity 0.15s ease;
-                }
-
-                .cal-booking-pill:hover {
-                    opacity: 0.85;
-                }
-
-                .cal-booking-pill.accepted {
-                    background: oklch(0.6290 0.1902 156.4499);
-                    color: white;
-                }
-
-                .cal-booking-pill.awaiting {
-                    background: var(--primary);
-                    color: var(--primary-foreground);
-                }
-
-                .cal-booking-pill.in-progress {
-                    background: oklch(0.55 0.15 250);
-                    color: white;
-                }
-
-                .cal-booking-pill.reschedule-pending {
-                    background: oklch(0.75 0.17 75);
-                    color: white;
-                }
-
-                .cal-booking-pill.no-show {
-                    background: var(--destructive);
-                    color: var(--destructive-foreground);
-                }
-
-                /* ── Modals ────────────────────────────────────── */
-                .modal-overlay {
-                    display: none;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.55);
-                    z-index: 2000;
-                    align-items: center;
-                    justify-content: center;
-                    backdrop-filter: blur(2px);
-                }
-
-                .modal-content {
-                    background: var(--card);
-                    padding: 2rem;
-                    border-radius: var(--radius);
-                    max-width: 560px;
-                    width: 90%;
-                    box-shadow: var(--shadow-xl);
-                    border: 1px solid var(--border);
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    animation: modalSlideIn 0.2s ease;
-                }
-
-                @keyframes modalSlideIn {
-                    from {
-                        transform: translateY(16px);
-                        opacity: 0;
-                    }
-
-                    to {
-                        transform: translateY(0);
-                        opacity: 1;
-                    }
-                }
-
-                .modal-content h3 {
-                    font-size: 1.35rem;
-                    font-weight: 700;
-                    margin-bottom: 1rem;
-                    color: var(--foreground);
-                }
-
-                /* ── Responsive ────────────────────────────────── */
-                @media (max-width: 768px) {
-                    .cal-day {
-                        min-height: 70px;
-                        padding: 0.3rem;
-                    }
-
-                    .cal-booking-pill {
-                        font-size: 0.6rem;
-                    }
-
-                    .cal-day-number {
-                        font-size: 0.75rem;
-                    }
-
-                    .calendar-month-label {
-                        font-size: 1rem;
-                        min-width: auto;
-                    }
-                }
-
-                .btn-start-job {
-                    background: oklch(0.55 0.15 250);
-                    color: white;
-                }
-
-                .btn-reschedule-req {
-                    background: var(--secondary);
-                    color: var(--secondary-foreground);
-                    border: 1px solid var(--border);
-                }
-
-                /* ── Client No-Show ────────────────────────────── */
-                .status-badge.client-no-show {
-                    background: #fce7f3;
-                    color: #9d174d;
-                }
-
-                .cal-booking-pill.client-no-show {
-                    background: #9d174d;
-                    color: white;
-                }
-
-                .btn-client-no-show {
-                    background: #9d174d;
-                    color: white;
-                }
-
-                /* Penalty review card */
-                .penalty-review-section {
-                    background: var(--card);
-                    border: 1px solid #fca5a5;
-                    border-radius: var(--radius);
-                    padding: 1.5rem;
-                    margin-bottom: 1.5rem;
-                    box-shadow: var(--shadow-sm);
-                }
-
-                .penalty-review-section h2 {
-                    font-size: 1.1rem;
-                    font-weight: 700;
-                    color: #991b1b;
-                    margin: 0 0 1rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                }
-
-                .penalty-review-card {
-                    background: #fff1f2;
-                    border: 1px solid #fca5a5;
-                    border-radius: var(--radius-md);
-                    padding: 1rem 1.25rem;
-                    margin-bottom: 0.75rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    flex-wrap: wrap;
-                    gap: 0.75rem;
-                }
-
-                .penalty-review-card:last-child { margin-bottom: 0; }
-
-                .penalty-review-info { flex: 1; min-width: 200px; }
-                .penalty-review-info strong { color: var(--foreground); font-size: 0.95rem; }
-                .penalty-review-info small  { color: var(--muted-foreground); font-size: 0.82rem; display: block; margin-top: 2px; }
-
-                .penalty-review-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-
-                .btn-confirm-paid {
-                    padding: 7px 14px;
-                    background: linear-gradient(135deg, #28a745, #20c997);
-                    color: #fff;
-                    border: none;
-                    border-radius: var(--radius-md);
-                    font-weight: 600;
-                    font-size: 0.85rem;
-                    cursor: pointer;
-                }
-
-                .btn-dispute-paid {
-                    padding: 7px 14px;
-                    background: var(--destructive);
-                    color: var(--destructive-foreground);
-                    border: none;
-                    border-radius: var(--radius-md);
-                    font-weight: 600;
-                    font-size: 0.85rem;
-                    cursor: pointer;
-                }
-
-                .btn-view-proof {
-                    padding: 7px 14px;
-                    background: var(--secondary);
-                    color: var(--secondary-foreground);
-                    border: 1px solid var(--border);
-                    border-radius: var(--radius-md);
-                    font-weight: 600;
-                    font-size: 0.85rem;
-                    cursor: pointer;
-                    text-decoration: none;
-                    display: inline-block;
-                }
-
-                /* ── Recurring Contract Group (list view) ─────── */
-                .recurring-contract-card {
-                    border-left: 4px solid var(--primary);
-                }
-
-                .recurring-badge {
-                    display: inline-block;
-                    padding: 0.18rem 0.55rem;
-                    border-radius: var(--radius-sm);
-                    font-size: 0.72rem;
-                    font-weight: 700;
-                    background: var(--primary);
-                    color: var(--primary-foreground);
-                    margin-left: 0.4rem;
-                    vertical-align: middle;
-                }
-
-                .months-toggle-btn {
-                    background: none;
-                    border: none;
-                    color: var(--primary);
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                    cursor: pointer;
-                    padding: 0;
-                    text-decoration: underline;
-                    font-family: var(--font-sans);
-                    margin-top: 0.5rem;
-                    display: inline-block;
-                }
-
-                .months-list {
-                    display: none;
-                    margin-top: 0.75rem;
-                    border: 1px solid var(--border);
-                    border-radius: var(--radius-md);
-                    overflow: hidden;
-                }
-
-                .months-list table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 0.875rem;
-                }
-
-                .months-list th {
-                    background: var(--muted);
-                    padding: 0.5rem 0.75rem;
-                    text-align: left;
-                    font-weight: 600;
-                    color: var(--muted-foreground);
-                    font-size: 0.8rem;
-                }
-
-                .months-list td {
-                    padding: 0.5rem 0.75rem;
-                    border-top: 1px solid var(--border);
-                    color: var(--foreground);
-                }
-
-                .months-list tr:hover td {
-                    background: var(--accent);
-                }
-            </style>
-        </head>
-
-        <body>
-            <jsp:include page="sidebar.jsp" />
-
-            <div class="dashboard-container">
-                <!-- Page header with toggle -->
-                <div class="page-header">
                     <h1>My Bookings</h1>
                     <div class="view-toggle">
                         <button id="btnListView" class="active" onclick="switchView('list')">📋 List View</button>
@@ -668,7 +71,7 @@
                 <c:if test="${not empty pendingPenaltyReviews}">
                 <div class="penalty-review-section">
                     <h2>&#9888; Pending Client Payment Reviews (${fn:length(pendingPenaltyReviews)})</h2>
-                    <p style="color:var(--muted-foreground);font-size:0.875rem;margin:-0.5rem 0 1rem;">
+                    <p class="penalty-subtitle">
                         The following clients have uploaded payment proof for no-show penalties. You must confirm or dispute within 48 hours, after which the case auto-escalates to admin.
                     </p>
                     <c:forEach var="pr" items="${pendingPenaltyReviews}">
@@ -681,12 +84,12 @@
                         <div class="penalty-review-actions">
                             <a href="${pageContext.request.contextPath}/${pr.proofPath}"
                                target="_blank" class="btn-view-proof">View Proof</a>
-                            <form method="post" action="${pageContext.request.contextPath}/technician/client-penalty/review" style="display:inline;">
+                            <form method="post" action="${pageContext.request.contextPath}/technician/client-penalty/review">
                                 <input type="hidden" name="penaltyId" value="${pr.penaltyId}">
                                 <input type="hidden" name="action" value="confirm">
                                 <button type="submit" class="btn-confirm-paid">Confirm Paid</button>
                             </form>
-                            <form method="post" action="${pageContext.request.contextPath}/technician/client-penalty/review" style="display:inline;">
+                            <form method="post" action="${pageContext.request.contextPath}/technician/client-penalty/review">
                                 <input type="hidden" name="penaltyId" value="${pr.penaltyId}">
                                 <input type="hidden" name="action" value="dispute">
                                 <button type="submit" class="btn-dispute-paid">Mark Not Paid</button>
@@ -710,7 +113,7 @@
                 </div>
 
                 <!-- ════════════ CALENDAR VIEW ════════════ -->
-                <div id="calendar-view" style="display: none;">
+                <div id="calendar-view" hidden>
                     <div class="calendar-controls">
                         <div class="calendar-nav">
                             <button onclick="changeMonth(-1)">&#9664;</button>
@@ -725,9 +128,9 @@
 
             <!-- ════════════ CLIENT NOT HOME MODAL ════════════ -->
             <div id="clientNoShowModal" class="modal-overlay">
-                <div class="modal-content" style="max-width:460px;">
-                    <h3 style="color:#9d174d;">&#9888; Mark Client Not Home</h3>
-                    <p style="color:var(--muted-foreground);font-size:0.9rem;margin-bottom:1.25rem;">
+                <div class="modal-content modal-content--narrow">
+                    <h3 class="modal-danger-title">&#9888; Mark Client Not Home</h3>
+                    <p class="modal-subtitle">
                         You are about to record that the client was not available at the scheduled location.
                         A <strong>Rs. 2,500 no-show penalty</strong> will be applied to the client's account.
                         This action cannot be undone.
@@ -736,23 +139,16 @@
                           action="${pageContext.request.contextPath}/bookings/client-no-show"
                           enctype="multipart/form-data">
                         <input type="hidden" name="bookingId" id="clientNoShowBookingId">
-                        <div style="margin-bottom:1rem;">
-                            <label style="display:block;margin-bottom:0.4rem;font-weight:600;color:var(--foreground);">Arrival Proof Photo (JPG or PNG, max 5 MB) *</label>
-                            <p style="font-size:0.82rem;color:var(--muted-foreground);margin:0 0 0.5rem;">Upload a photo showing the client's door / location to confirm you arrived.</p>
+                        <div class="modal-form-group">
+                            <label>Arrival Proof Photo (JPG or PNG, max 5 MB) *</label>
+                            <p class="field-hint">Upload a photo showing the client's door / location to confirm you arrived.</p>
                             <input type="file" name="techProofFile" id="techProofFileInput"
-                                   accept="image/jpeg,image/png" required
-                                   style="width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--input);color:var(--foreground);font-family:var(--font-sans);">
-                            <div id="techProofFileError" style="color:#dc2626;font-size:0.8em;margin-top:0.3rem;display:none;"></div>
+                                   accept="image/jpeg,image/png" required>
+                            <div id="techProofFileError" class="field-error"></div>
                         </div>
-                        <div style="display: flex; gap: 1rem;">
-                            <button type="submit"
-                                style="flex:1;background:#9d174d;color:white;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:700;cursor:pointer;font-family:var(--font-sans);">
-                                Confirm – Client Not Home
-                            </button>
-                            <button type="button" onclick="closeClientNoShowModal()"
-                                style="flex:1;background:var(--secondary);color:var(--secondary-foreground);padding:0.75rem;border:1px solid var(--border);border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">
-                                Cancel
-                            </button>
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-no-show-confirm">Confirm – Client Not Home</button>
+                            <button type="button" class="modal-close-btn" onclick="closeClientNoShowModal()">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -762,20 +158,37 @@
                     <h3>Cancel Booking</h3>
                     <form id="cancelForm" method="post" action="${pageContext.request.contextPath}/bookings/cancel">
                         <input type="hidden" name="bookingId" id="cancelBookingId">
-                        <div style="margin-bottom: 1rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Reason for
-                                Cancellation *</label>
+                        <div class="modal-form-group">
+                            <label>Reason for Cancellation *</label>
                             <textarea name="cancellationReason" required rows="4"
-                                placeholder="Please provide a reason..."
-                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--input); color: var(--foreground); resize: vertical; font-family: var(--font-sans);"></textarea>
+                                placeholder="Please provide a reason..."></textarea>
                         </div>
-                        <div style="display: flex; gap: 1rem;">
-                            <button type="submit" class="btn-cancel-booking"
-                                style="flex: 1; border-radius: var(--radius-md);">Cancel Booking</button>
-                            <button type="button" onclick="closeCancelModal()"
-                                style="flex: 1; background: var(--secondary); color: var(--secondary-foreground); padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-family: var(--font-sans);">Close</button>
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-cancel-booking">Cancel Booking</button>
+                            <button type="button" class="modal-close-btn" onclick="closeCancelModal()">Close</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- ════════════ TECHNICIAN EARLY CANCEL WARNING MODAL ════════════ -->
+            <div id="techEarlyCancelModal" class="modal-overlay">
+                <div class="modal-content modal-content--narrow">
+                    <h3 class="modal-danger-title">&#9888; Early Cancellation Warning</h3>
+                    <p class="modal-subtitle">
+                        This booking is scheduled within the next <strong>24 hours</strong>.
+                        Cancelling at this stage is considered an <strong>emergency cancellation</strong>.
+                    </p>
+                    <p class="modal-subtitle" style="margin-top: 0.6rem;">
+                        Technicians are permitted a maximum of <strong>2 emergency cancellations per calendar month</strong>.
+                        Each cancellation beyond this limit will result in a <strong>strike</strong> on your account.
+                        Accumulating <strong>3 strikes</strong> will result in automatic <strong>account suspension</strong>.
+                    </p>
+                    <input type="hidden" id="techEarlyCancelBookingId">
+                    <div class="modal-actions">
+                        <button type="button" class="btn-cancel-booking" onclick="proceedTechEarlyCancel()">Proceed to Cancel</button>
+                        <button type="button" class="modal-close-btn" onclick="closeTechEarlyCancelModal()">Go Back</button>
+                    </div>
                 </div>
             </div>
 
@@ -785,26 +198,21 @@
                     <h3>Request Reschedule</h3>
                     <form id="rescheduleForm" method="post" action="${pageContext.request.contextPath}/bookings/reschedule/request">
                         <input type="hidden" name="bookingId" id="rescheduleBookingId">
-                        <div style="margin-bottom: 1rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">New Date *</label>
-                            <input type="date" name="newDate" id="rescheduleNewDate" required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--input); color: var(--foreground); font-family: var(--font-sans);">
+                        <div class="modal-form-group">
+                            <label>New Date *</label>
+                            <input type="date" name="newDate" id="rescheduleNewDate" required>
                         </div>
-                        <div style="margin-bottom: 1rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">New Time *</label>
-                            <input type="time" name="newTime" id="rescheduleNewTime" required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--input); color: var(--foreground); font-family: var(--font-sans);">
+                        <div class="modal-form-group">
+                            <label>New Time *</label>
+                            <input type="time" name="newTime" id="rescheduleNewTime" required>
                         </div>
-                        <div style="margin-bottom: 1rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Reason (optional)</label>
-                            <textarea name="reason" rows="3" placeholder="Provide a reason for rescheduling..."
-                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--input); color: var(--foreground); resize: vertical; font-family: var(--font-sans);"></textarea>
+                        <div class="modal-form-group">
+                            <label>Reason (optional)</label>
+                            <textarea name="reason" rows="3" placeholder="Provide a reason for rescheduling..."></textarea>
                         </div>
-                        <div style="display: flex; gap: 1rem;">
-                            <button type="submit" class="btn-complete"
-                                style="flex: 1; border-radius: var(--radius-md); padding: 0.75rem; border: none; cursor: pointer;">Submit Request</button>
-                            <button type="button" onclick="closeRescheduleModal()"
-                                style="flex: 1; background: var(--secondary); color: var(--secondary-foreground); padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-family: var(--font-sans);">Close</button>
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-complete">Submit Request</button>
+                            <button type="button" class="modal-close-btn" onclick="closeRescheduleModal()">Close</button>
                         </div>
                     </form>
                 </div>
@@ -814,27 +222,24 @@
             <div id="detailModal" class="modal-overlay">
                 <div class="modal-content">
                     <h3 id="detailServiceName"></h3>
-                    <div class="info-block" style="margin-bottom: 0.75rem;">
+                    <div class="info-block">
                         <p><strong>Customer:</strong> <span id="detailCustomer"></span></p>
                         <p><strong>Phone:</strong> <span id="detailPhone"></span></p>
                         <p><strong>Date:</strong> <span id="detailDate"></span></p>
                         <p><strong>Status:</strong> <span id="detailStatusBadge"></span></p>
                     </div>
-                    <div class="info-block" style="margin-bottom: 0.75rem;">
+                    <div class="info-block">
                         <p class="label">Problem Description:</p>
                         <p id="detailProblem"></p>
                     </div>
-                    <div class="info-block" style="margin-bottom: 1rem;">
+                    <div class="info-block">
                         <p class="label">Location:</p>
                         <p id="detailAddress"></p>
-                        <a id="detailMapLink" href="#" target="_blank"
-                            style="color: var(--primary); text-decoration: underline; display: none; margin-top: 0.25rem;">View
-                            on Google Maps</a>
+                        <a id="detailMapLink" href="#" target="_blank" class="map-link">View on Google Maps</a>
                     </div>
                     <div id="detailActions" class="booking-actions"></div>
-                    <div style="margin-top: 1rem; text-align: right;">
-                        <button onclick="closeDetailModal()"
-                            style="background: var(--secondary); color: var(--secondary-foreground); padding: 0.6rem 1.2rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-family: var(--font-sans);">Close</button>
+                    <div class="modal-footer-right">
+                        <button class="modal-close-btn" onclick="closeDetailModal()">Close</button>
                     </div>
                 </div>
             </div>
@@ -1057,9 +462,9 @@
                     var mapLink = document.getElementById('detailMapLink');
                     if (b.lat && b.lng && b.lat !== '' && b.lng !== '') {
                         mapLink.href = 'https://www.google.com/maps?q=' + b.lat + ',' + b.lng;
-                        mapLink.style.display = 'inline-block';
+                        mapLink.classList.add('visible');
                     } else {
-                        mapLink.style.display = 'none';
+                        mapLink.classList.remove('visible');
                     }
 
                     /* Action buttons */
@@ -1076,18 +481,16 @@
                         var startForm = document.createElement('form');
                         startForm.method = 'post';
                         startForm.action = contextPath + '/bookings/complete';
-                        startForm.style.flex = '1';
-                        startForm.style.minWidth = '150px';
+                        startForm.className = 'action-form';
                         startForm.innerHTML =
                             '<input type="hidden" name="bookingId" value="' + b.id + '">' +
                             '<input type="hidden" name="completionType" value="start">' +
-                            '<button type="submit" class="btn-start-job" style="width:100%;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">Mark In Progress</button>';
+                            '<button type="submit" class="btn-start-job btn-full">Mark In Progress</button>';
                         actions.appendChild(startForm);
 
                         var reschedBtn = document.createElement('button');
                         reschedBtn.className = 'btn-reschedule-req';
                         reschedBtn.textContent = 'Request Reschedule';
-                        reschedBtn.style.cssText = 'flex:1;min-width:150px;padding:0.75rem;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);';
                         reschedBtn.onclick = function () {
                             closeDetailModal();
                             openRescheduleModal(b.id);
@@ -1098,17 +501,15 @@
                         var completeForm = document.createElement('form');
                         completeForm.method = 'post';
                         completeForm.action = contextPath + '/bookings/complete';
-                        completeForm.style.flex = '1';
-                        completeForm.style.minWidth = '150px';
+                        completeForm.className = 'action-form';
                         completeForm.innerHTML =
                             '<input type="hidden" name="bookingId" value="' + b.id + '">' +
                             '<input type="hidden" name="completionType" value="technician">' +
-                            '<button type="submit" class="btn-complete" style="width:100%">Mark as Complete</button>';
+                            '<button type="submit" class="btn-complete" btn-full">Mark as Complete</button>';
                         actions.appendChild(completeForm);
 
                         var cnsBtn2 = document.createElement('button');
                         cnsBtn2.className = 'btn-client-no-show';
-                        cnsBtn2.style.cssText = 'flex:1;min-width:150px;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);';
                         var elapsed2 = b.updatedAt ? (Date.now() - b.updatedAt) : Infinity;
                         var tenMin = 10 * 60 * 1000;
                         if (elapsed2 >= tenMin) {
@@ -1122,7 +523,7 @@
                             cnsBtn2.textContent = 'Client Not Home (in ' + remainMin2 + ' min)';
                             cnsBtn2.disabled = true;
                             cnsBtn2.title = 'Available 10 minutes after marking In Progress';
-                            cnsBtn2.style.cssText += 'opacity:0.45;cursor:not-allowed;';
+                            cnsBtn2.classList.add('btn-disabled');
                         }
                         actions.appendChild(cnsBtn2);
 
@@ -1137,31 +538,31 @@
                         if (pr) {
                             if (pr.requestedBy === currentUserId) {
                                 var awaitMsg = document.createElement('div');
-                                awaitMsg.style.cssText = 'flex:2;background:#fef3c7;color:#92400e;padding:0.6rem 1rem;border-radius:var(--radius-md);font-size:0.85rem;font-weight:600;';
+                                awaitMsg.className = 'reschedule-info-chip';
                                 awaitMsg.textContent = 'Requested reschedule to ' + pr.newDate + ' at ' + pr.newTime + ' — awaiting client response';
                                 actions.appendChild(awaitMsg);
                             } else {
                                 var acceptForm = document.createElement('form');
                                 acceptForm.method = 'post';
                                 acceptForm.action = contextPath + '/bookings/reschedule/respond';
-                                acceptForm.style.flex = '1';
+                                acceptForm.className = 'action-form';
                                 acceptForm.innerHTML =
                                     '<input type="hidden" name="bookingId" value="' + b.id + '">' +
                                     '<input type="hidden" name="rescheduleId" value="' + pr.rescheduleId + '">' +
                                     '<input type="hidden" name="action" value="accept">' +
                                     '<input type="hidden" name="keepBooking" value="true">' +
-                                    '<button type="submit" class="btn-complete" style="width:100%;padding:0.75rem;">Accept Reschedule</button>';
+                                    '<button type="submit" class="btn-complete" btn-full">Accept Reschedule</button>';
                                 actions.appendChild(acceptForm);
                                 var rejectForm = document.createElement('form');
                                 rejectForm.method = 'post';
                                 rejectForm.action = contextPath + '/bookings/reschedule/respond';
-                                rejectForm.style.flex = '1';
+                                rejectForm.className = 'action-form';
                                 rejectForm.innerHTML =
                                     '<input type="hidden" name="bookingId" value="' + b.id + '">' +
                                     '<input type="hidden" name="rescheduleId" value="' + pr.rescheduleId + '">' +
                                     '<input type="hidden" name="action" value="reject">' +
                                     '<input type="hidden" name="keepBooking" value="true">' +
-                                    '<button type="submit" class="btn-cancel-booking" style="width:100%;padding:0.75rem;">Reject Reschedule</button>';
+                                    '<button type="submit" class="btn-cancel-booking" btn-full">Reject Reschedule</button>';
                                 actions.appendChild(rejectForm);
                             }
                         }
@@ -1173,7 +574,7 @@
                         cancelBtn.textContent = 'Cancel Booking';
                         cancelBtn.onclick = function () {
                             closeDetailModal();
-                            showCancelModal(b.id);
+                            handleTechCancelClick(b.id, b.date, b.time);
                         };
                         actions.appendChild(cancelBtn);
                     }
@@ -1186,6 +587,27 @@
                 }
 
                 /* ── Cancel Modal ──────────────────────────────── */
+                function handleTechCancelClick(bookingId, date, time) {
+                    var bookingMs = new Date(date + 'T' + time).getTime();
+                    var hoursAway = (bookingMs - Date.now()) / 3600000;
+                    if (hoursAway > 0 && hoursAway <= 24) {
+                        document.getElementById('techEarlyCancelBookingId').value = bookingId;
+                        document.getElementById('techEarlyCancelModal').style.display = 'flex';
+                    } else {
+                        showCancelModal(bookingId);
+                    }
+                }
+
+                function proceedTechEarlyCancel() {
+                    var bookingId = document.getElementById('techEarlyCancelBookingId').value;
+                    closeTechEarlyCancelModal();
+                    showCancelModal(bookingId);
+                }
+
+                function closeTechEarlyCancelModal() {
+                    document.getElementById('techEarlyCancelModal').style.display = 'none';
+                }
+
                 function showCancelModal(bookingId) {
                     document.getElementById('cancelBookingId').value = bookingId;
                     document.getElementById('cancelModal').style.display = 'flex';
@@ -1243,6 +665,9 @@
                 /* Close modals on overlay click */
                 document.getElementById('cancelModal').addEventListener('click', function (e) {
                     if (e.target === this) closeCancelModal();
+                });
+                document.getElementById('techEarlyCancelModal').addEventListener('click', function (e) {
+                    if (e.target === this) closeTechEarlyCancelModal();
                 });
                 document.getElementById('detailModal').addEventListener('click', function (e) {
                     if (e.target === this) closeDetailModal();
@@ -1304,7 +729,7 @@
                             case 'RESCHEDULE_PENDING': return '<span class="status-badge reschedule-pending">RESCHEDULE PENDING</span>';
                             case 'NO_SHOW': return '<span class="status-badge no-show">NO SHOW</span>';
                             case 'CLIENT_NO_SHOW': return '<span class="status-badge client-no-show">CLIENT NOT HOME</span>';
-                            case 'TECHNICIAN_COMPLETED': return '<span class="status-badge" style="background:#e0e7ff;color:#3730a3;">AWAITING USER CONFIRM</span>';
+                            case 'TECHNICIAN_COMPLETED': return '<span class="status-badge tech-completed">AWAITING USER CONFIRM</span>';
                             default: return '<span class="status-badge awaiting">' + status + '</span>';
                         }
                     }
@@ -1313,51 +738,51 @@
                         var html = '<a href="' + contextPath + '/chats/view?chatId=' + b.id + '" class="btn-chat">Open Chat</a>';
                         var tenMin = 10 * 60 * 1000;
                         if (b.status === 'ACCEPTED') {
-                            html += '<form method="post" action="' + contextPath + '/bookings/complete" style="flex:1;min-width:150px;">'
+                            html += '<form method="post" action="' + contextPath + '/bookings/complete" class="action-form">'
                                 + '<input type="hidden" name="bookingId" value="' + b.id + '">'
                                 + '<input type="hidden" name="completionType" value="start">'
-                                + '<button type="submit" class="btn-start-job" style="width:100%;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">Mark In Progress</button>'
+                                + '<button type="submit" class="btn-start-job btn-full">Mark In Progress</button>'
                                 + '</form>'
-                                + '<button onclick="openRescheduleModal(' + b.id + ')" class="btn-reschedule-req" style="flex:1;min-width:150px;padding:0.75rem;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">Request Reschedule</button>';
+                                + '<button onclick="openRescheduleModal(' + b.id + ')" class="btn-reschedule-req">Request Reschedule</button>';
                         } else if (b.status === 'IN_PROGRESS') {
-                            html += '<form method="post" action="' + contextPath + '/bookings/complete" style="flex:1;min-width:150px;">'
+                            html += '<form method="post" action="' + contextPath + '/bookings/complete" class="action-form">'
                                 + '<input type="hidden" name="bookingId" value="' + b.id + '">'
                                 + '<input type="hidden" name="completionType" value="technician">'
-                                + '<button type="submit" class="btn-complete" style="width:100%;">Mark as Complete</button>'
+                                + '<button type="submit" class="btn-complete" btn-full">Mark as Complete</button>'
                                 + '</form>';
                             var elapsed = b.updatedAt ? (Date.now() - b.updatedAt) : Infinity;
                             if (elapsed >= tenMin) {
-                                html += '<button onclick="openClientNoShowModal(' + b.id + ')" class="btn-client-no-show" style="flex:1;min-width:150px;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;cursor:pointer;font-family:var(--font-sans);">Client Not Home</button>';
+                                html += '<button onclick="openClientNoShowModal(' + b.id + ')" class="btn-client-no-show">Client Not Home</button>';
                             } else {
                                 var remainMin = Math.ceil((tenMin - elapsed) / 60000);
-                                html += '<button disabled class="btn-client-no-show" style="flex:1;min-width:150px;padding:0.75rem;border:none;border-radius:var(--radius-md);font-weight:600;font-family:var(--font-sans);opacity:0.45;cursor:not-allowed;" title="Available 10 minutes after marking In Progress">Client Not Home (in ' + remainMin + ' min)</button>';
+                                html += '<button disabled class="btn-client-no-show btn-disabled" title="Available 10 minutes after marking In Progress">Client Not Home (in ' + remainMin + ' min)</button>';
                             }
                             var pr = pendingReschedules[b.id];
                             if (pr) {
                                 if (pr.requestedBy === currentUserId) {
-                                    html += '<div style="flex:2;background:#fef3c7;color:#92400e;padding:0.6rem 1rem;border-radius:var(--radius-md);font-size:0.85rem;font-weight:600;">'
+                                    html += '<div class="reschedule-info-chip">'
                                         + 'Requested reschedule to ' + pr.newDate + ' at ' + formatTime(pr.newTime) + ' \u2014 awaiting client response</div>';
                                 } else {
-                                    html += '<div style="flex:2;background:var(--muted);padding:0.6rem 0.9rem;border-radius:var(--radius-md);font-size:0.82rem;">'
+                                    html += '<div class="reschedule-request-chip">'
                                         + '<strong>' + escHtml(pr.requesterName) + '</strong> requested to ' + pr.newDate + ' at ' + formatTime(pr.newTime)
                                         + (pr.reason ? '<br><em>"' + escHtml(pr.reason) + '"</em>' : '') + '</div>'
-                                        + '<form method="post" action="' + contextPath + '/bookings/reschedule/respond" style="flex:1;min-width:110px;">'
+                                        + '<form method="post" action="' + contextPath + '/bookings/reschedule/respond" class="action-form-sm">'
                                         + '<input type="hidden" name="bookingId" value="' + b.id + '">'
                                         + '<input type="hidden" name="rescheduleId" value="' + pr.rescheduleId + '">'
                                         + '<input type="hidden" name="action" value="accept">'
                                         + '<input type="hidden" name="keepBooking" value="true">'
-                                        + '<button type="submit" class="btn-complete" style="width:100%;padding:0.65rem;">Accept</button></form>'
-                                        + '<form method="post" action="' + contextPath + '/bookings/reschedule/respond" style="flex:1;min-width:110px;">'
+                                        + '<button type="submit" class="btn-complete" btn-full">Accept</button></form>'
+                                        + '<form method="post" action="' + contextPath + '/bookings/reschedule/respond" class="action-form-sm">'
                                         + '<input type="hidden" name="bookingId" value="' + b.id + '">'
                                         + '<input type="hidden" name="rescheduleId" value="' + pr.rescheduleId + '">'
                                         + '<input type="hidden" name="action" value="reject">'
                                         + '<input type="hidden" name="keepBooking" value="true">'
-                                        + '<button type="submit" class="btn-cancel-booking" style="width:100%;padding:0.65rem;">Reject</button></form>';
+                                        + '<button type="submit" class="btn-cancel-booking" btn-full">Reject</button></form>';
                                 }
                             }
                         }
                         if (b.status !== 'NO_SHOW' && b.status !== 'TECHNICIAN_COMPLETED' && b.status !== 'CLIENT_NO_SHOW') {
-                            html += '<button onclick="showCancelModal(' + b.id + ')" class="btn-cancel-booking">Cancel Booking</button>';
+                            html += '<button onclick="handleTechCancelClick(' + b.id + ',\'' + b.date + '\',\'' + b.time + '\')" class="btn-cancel-booking">Cancel Booking</button>';
                         }
                         return html;
                     }
@@ -1378,12 +803,12 @@
                                 '<td>Month ' + m.recurringSeq + '</td>' +
                                 '<td>' + m.date + ' at ' + formatTime(m.time) + '</td>' +
                                 '<td>' + statusBadgeHtml(m.status) + '</td>' +
-                                '<td><button onclick="showCancelModal(' + m.id + ')" class="btn-cancel-booking" style="padding:0.25rem 0.6rem;font-size:0.75rem;min-width:auto;flex:none;">Cancel</button></td>' +
+                                '<td><button onclick="handleTechCancelClick(' + m.id + ',\'' + m.date + '\',\'' + m.time + '\')" class="btn-cancel-booking btn-sm">Cancel</button></td>' +
                                 '</tr>';
                         }).join('');
 
                         var mapHtml = (rep.lat && rep.lng && rep.lat !== '' && rep.lng !== '')
-                            ? '<a href="https://www.google.com/maps?q=' + rep.lat + ',' + rep.lng + '" target="_blank" style="color:var(--primary);text-decoration:underline;margin-top:0.25rem;display:inline-block;">View on Google Maps</a>'
+                            ? '<a href="https://www.google.com/maps?q=' + rep.lat + ',' + rep.lng + '" target="_blank" class="map-link visible">View on Google Maps</a>'
                             : '';
 
                         var card = document.createElement('div');
@@ -1405,7 +830,7 @@
                             + '<div class="months-list" id="' + groupId + '">'
                             + '<table><thead><tr><th>Month</th><th>Date &amp; Time</th><th>Status</th><th>Action</th></tr></thead>'
                             + '<tbody>' + monthRows + '</tbody></table></div>'
-                            + '<div class="booking-actions" style="margin-top:1rem;">'
+                            + '<div class="booking-actions">'
                             + buildActionsHtml(next)
                             + '</div>';
                         container.appendChild(card);
@@ -1414,7 +839,7 @@
                     /* Individual non-recurring booking cards */
                     nonRecurring.forEach(function (b) {
                         var mapHtml = (b.lat && b.lng && b.lat !== '' && b.lng !== '')
-                            ? '<a href="https://www.google.com/maps?q=' + b.lat + ',' + b.lng + '" target="_blank" style="color:var(--primary);text-decoration:underline;margin-top:0.25rem;display:inline-block;">View on Google Maps</a>'
+                            ? '<a href="https://www.google.com/maps?q=' + b.lat + ',' + b.lng + '" target="_blank" class="map-link visible">View on Google Maps</a>'
                             : '';
 
                         var card = document.createElement('div');

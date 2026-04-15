@@ -68,7 +68,6 @@
                                                         <th>Service</th>
                                                         <th>Customer</th>
                                                         <th>Date &amp; Time</th>
-                                                        <th>Address</th>
                                                         <th>Status</th>
                                                         <th>Actions</th>
                                                     </tr>
@@ -87,7 +86,6 @@
                                                                 <fmt:formatDate value="${b.bookingTime}"
                                                                     pattern="hh:mm a" type="time" />
                                                             </td>
-                                                            <td>${b.locationAddress}</td>
                                                             <td>
                                                                 <c:choose>
                                                                     <c:when test="${b.status eq 'FULLY_COMPLETED'}">
@@ -100,6 +98,9 @@
                                                                         <span class="status-badge"
                                                                             style="background: #e0e7ff; color: #3730a3;">Awaiting
                                                                             User Confirm</span>
+                                                                    </c:when>
+                                                                    <c:when test="${b.status eq 'NO_SHOW'}">
+                                                                        <span class="status-badge" style="background:#fef3c7;color:#92400e;">No Show</span>
                                                                     </c:when>
                                                                     <c:when test="${b.status eq 'CLIENT_NO_SHOW'}">
                                                                         <c:set var="cp" value="${clientNoShowPenalties[b.bookingId]}"/>
@@ -130,6 +131,9 @@
                                                                     </c:when>
                                                                     <c:when test="${b.status eq 'FULLY_COMPLETED'}">
                                                                         <span style="font-size:0.8rem; color:var(--muted-foreground);">Rated &#10003;</span>
+                                                                    </c:when>
+                                                                    <c:when test="${b.status eq 'NO_SHOW'}">
+                                                                        <span style="font-size:0.8rem;color:var(--muted-foreground);">—</span>
                                                                     </c:when>
                                                                     <c:when test="${b.status eq 'CLIENT_NO_SHOW'}">
                                                                         <c:set var="cp" value="${clientNoShowPenalties[b.bookingId]}"/>

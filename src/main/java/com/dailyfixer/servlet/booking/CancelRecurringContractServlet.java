@@ -45,6 +45,12 @@ public class CancelRecurringContractServlet extends HttpServlet {
                 return;
             }
 
+            // Guard: only ACTIVE or PENDING contracts may be cancelled
+            if (!"ACTIVE".equals(contract.getStatus()) && !"PENDING".equals(contract.getStatus())) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Contract is not in a cancellable state.");
+                return;
+            }
+
             // Cancel future ACCEPTED bookings, then mark contract CANCELLED
             BookingDAO bookingDAO = new BookingDAO();
             bookingDAO.cancelFutureBookingsByContractId(contractId);

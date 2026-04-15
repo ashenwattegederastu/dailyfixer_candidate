@@ -238,6 +238,11 @@
                                                 <span style="font-size:0.78rem;color:#92400e;font-weight:600;">Under admin review.</span>
                                             </c:if>
                                         </c:if>
+                                        <%-- Cancel Booking (REQUESTED or ACCEPTED) --%>
+                                        <c:if test="${b.status eq 'REQUESTED' or b.status eq 'ACCEPTED'}">
+                                            <button onclick="handleClientCancelClick(${b.bookingId}, '${b.bookingDate}', '${b.bookingTime}')"
+                                                    style="padding:4px 10px;font-size:0.8em;background:#ef4444;color:white;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:600;margin-top:4px;">Cancel Booking</button>
+                                        </c:if>
                                     </div>
                                 </td>
                             </tr>
@@ -249,6 +254,41 @@
         </div>
     </div>
 </main>
+
+<!-- Client Early Cancel Warning Modal -->
+<div id="clientEarlyCancelModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--card);padding:2rem;border-radius:0.75rem;max-width:500px;width:90%;border:1px solid var(--border);">
+        <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;color:#991b1b;">&#9888; Late Cancellation Fee Required</h3>
+        <p style="color:var(--muted-foreground);font-size:0.88em;margin-bottom:0.75rem;line-height:1.6;">
+            This booking is scheduled within the next <strong>24 hours</strong>. Cancelling at this stage requires a
+            <strong style="color:#991b1b;">penalty fee equal to 50% of the booking amount</strong> to be paid to the
+            Daily Fixer system before the cancellation is processed.
+        </p>
+        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+            <button type="button" style="flex:1;padding:0.7rem;background:#ef4444;color:white;border:none;border-radius:0.4rem;font-weight:600;font-family:inherit;cursor:pointer;">Cancel and Pay</button>
+            <button type="button" onclick="closeClientEarlyCancelModal()" style="flex:1;padding:0.7rem;background:var(--secondary);color:var(--secondary-foreground);border:1px solid var(--border);border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Go Back</button>
+        </div>
+    </div>
+</div>
+
+<!-- Client Cancel Booking Modal -->
+<div id="clientCancelModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--card);padding:2rem;border-radius:0.75rem;max-width:480px;width:90%;border:1px solid var(--border);">
+        <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:1rem;">Cancel Booking</h3>
+        <form id="clientCancelForm" method="post" action="${pageContext.request.contextPath}/bookings/cancel">
+            <input type="hidden" name="bookingId" id="clientCancelBookingId">
+            <div style="margin-bottom:0.9rem;">
+                <label style="display:block;margin-bottom:0.4rem;font-weight:600;">Reason for Cancellation *</label>
+                <textarea name="cancellationReason" required rows="4" placeholder="Please provide a reason..."
+                    style="width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:0.4rem;background:var(--input);color:var(--foreground);resize:vertical;font-family:inherit;"></textarea>
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+                <button type="submit" style="flex:1;padding:0.7rem;background:#ef4444;color:white;border:none;border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel Booking</button>
+                <button type="button" onclick="closeClientCancelModal()" style="flex:1;padding:0.7rem;background:var(--secondary);color:var(--secondary-foreground);border:1px solid var(--border);border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Go Back</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Pay Penalty Modal -->
 <div id="payPenaltyModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
@@ -354,6 +394,29 @@
     document.getElementById('rescheduleModal').addEventListener('click', function(e) {
         if (e.target === this) closeRescheduleModal();
     });
+    document.getElementById('clientEarlyCancelModal').addEventListener('click', function(e) {
+        if (e.target === this) closeClientEarlyCancelModal();
+    });
+    document.getElementById('clientCancelModal').addEventListener('click', function(e) {
+        if (e.target === this) closeClientCancelModal();
+    });
+
+    function handleClientCancelClick(bookingId, dateStr, timeStr) {
+        var bookingMs = new Date(dateStr + 'T' + timeStr).getTime();
+        var hoursAway = (bookingMs - Date.now()) / 3600000;
+        if (hoursAway > 0 && hoursAway <= 24) {
+            document.getElementById('clientEarlyCancelModal').style.display = 'flex';
+        } else {
+            document.getElementById('clientCancelBookingId').value = bookingId;
+            document.getElementById('clientCancelModal').style.display = 'flex';
+        }
+    }
+    function closeClientEarlyCancelModal() {
+        document.getElementById('clientEarlyCancelModal').style.display = 'none';
+    }
+    function closeClientCancelModal() {
+        document.getElementById('clientCancelModal').style.display = 'none';
+    }
 </script>
 </body>
 </html>

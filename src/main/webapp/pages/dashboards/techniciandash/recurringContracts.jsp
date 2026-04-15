@@ -102,15 +102,11 @@
                                     </td>
                                     <td>
                                         <c:if test="${c.status == 'ACTIVE' || c.status == 'PENDING'}">
-                                            <form method="post" action="${pageContext.request.contextPath}/recurring/cancel"
-                                                  onsubmit="return confirm('Cancel this recurring contract? All future bookings will be removed.');">
-                                                <input type="hidden" name="contractId" value="${c.contractId}">
-                                                <input type="hidden" name="role" value="technician">
-                                                <button type="submit"
-                                                        style="background: var(--destructive); color: var(--destructive-foreground); border: none; padding: 6px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
-                                                    Cancel
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                    onclick="handleTechRecurringCancel(${c.contractId}, ${c.bookingDayOfMonth})"
+                                                    style="background: var(--destructive); color: var(--destructive-foreground); border: none; padding: 6px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                                                Cancel
+                                            </button>
                                         </c:if>
                                         <c:if test="${c.status != 'ACTIVE' && c.status != 'PENDING'}">
                                             <span style="color: var(--muted-foreground); font-size: 0.85rem;">—</span>
@@ -125,4 +121,90 @@
         </c:choose>
     </div>
 </body>
+<!-- Hidden forms for recurring cancel POST -->
+<form id="techRecurringCancelForm" method="post" action="${pageContext.request.contextPath}/recurring/cancel" style="display:none;">
+    <input type="hidden" name="contractId" id="techRecurringContractId">
+    <input type="hidden" name="role" value="technician">
+</form>
+
+<!-- Technician Early Recurring Cancel Modal (≤15 days to next booking) -->
+<div id="techRecurringEarlyModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--card);padding:2rem;border-radius:0.75rem;max-width:520px;width:90%;border:1px solid var(--border);">
+        <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;color:#991b1b;">&#9888; Early Recurring Contract Cancellation</h3>
+        <p style="color:var(--muted-foreground);font-size:0.88em;margin-bottom:0.75rem;line-height:1.6;">
+            The next scheduled booking for this contract is within <strong>15 days</strong>.
+            Cancelling now will count as an <strong>early recurring cancellation</strong>.
+        </p>
+        <p style="color:var(--muted-foreground);font-size:0.88em;line-height:1.6;">
+            Technicians are permitted a maximum of <strong>2 early recurring cancellations per calendar month</strong>.
+            Each additional one beyond the limit will result in a <strong>strike</strong>.
+            Accumulating <strong>3 strikes</strong> will lead to automatic <strong>account suspension</strong>.
+        </p>
+        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+            <button type="button" onclick="confirmTechRecurringEarlyCancel()" style="flex:1;padding:0.7rem;background:#ef4444;color:white;border:none;border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Proceed to Cancel</button>
+            <button type="button" onclick="closeTechRecurringEarlyModal()" style="flex:1;padding:0.7rem;background:var(--secondary);color:var(--secondary-foreground);border:1px solid var(--border);border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Go Back</button>
+        </div>
+    </div>
+</div>
+
+<!-- Technician Normal Recurring Cancel Confirm Modal (>15 days) -->
+<div id="techRecurringConfirmModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--card);padding:2rem;border-radius:0.75rem;max-width:460px;width:90%;border:1px solid var(--border);">
+        <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;">Cancel Recurring Contract</h3>
+        <p style="color:var(--muted-foreground);font-size:0.88em;line-height:1.6;">
+            Are you sure? This will cancel the contract and remove all future scheduled bookings.
+        </p>
+        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+            <button type="button" onclick="confirmTechRecurringCancel()" style="flex:1;padding:0.7rem;background:#ef4444;color:white;border:none;border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Confirm Cancel</button>
+            <button type="button" onclick="closeTechRecurringConfirmModal()" style="flex:1;padding:0.7rem;background:var(--secondary);color:var(--secondary-foreground);border:1px solid var(--border);border-radius:0.4rem;font-weight:600;cursor:pointer;font-family:inherit;">Go Back</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function nextOccurrence(dayOfMonth) {
+        var now = new Date();
+        var d = new Date(now.getFullYear(), now.getMonth(), dayOfMonth);
+        if (d <= now) {
+            d = new Date(now.getFullYear(), now.getMonth() + 1, dayOfMonth);
+        }
+        return d;
+    }
+
+    function handleTechRecurringCancel(contractId, dayOfMonth) {
+        var next = nextOccurrence(dayOfMonth);
+        var daysAway = (next - new Date()) / 86400000;
+        document.getElementById('techRecurringContractId').value = contractId;
+        if (daysAway <= 15) {
+            document.getElementById('techRecurringEarlyModal').style.display = 'flex';
+        } else {
+            document.getElementById('techRecurringConfirmModal').style.display = 'flex';
+        }
+    }
+
+    function confirmTechRecurringEarlyCancel() {
+        closeTechRecurringEarlyModal();
+        document.getElementById('techRecurringCancelForm').submit();
+    }
+
+    function confirmTechRecurringCancel() {
+        closeTechRecurringConfirmModal();
+        document.getElementById('techRecurringCancelForm').submit();
+    }
+
+    function closeTechRecurringEarlyModal() {
+        document.getElementById('techRecurringEarlyModal').style.display = 'none';
+    }
+
+    function closeTechRecurringConfirmModal() {
+        document.getElementById('techRecurringConfirmModal').style.display = 'none';
+    }
+
+    document.getElementById('techRecurringEarlyModal').addEventListener('click', function(e) {
+        if (e.target === this) closeTechRecurringEarlyModal();
+    });
+    document.getElementById('techRecurringConfirmModal').addEventListener('click', function(e) {
+        if (e.target === this) closeTechRecurringConfirmModal();
+    });
+</script>
 </html>

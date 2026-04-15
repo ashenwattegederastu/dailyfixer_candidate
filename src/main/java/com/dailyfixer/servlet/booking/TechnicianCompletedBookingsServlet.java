@@ -38,15 +38,17 @@ public class TechnicianCompletedBookingsServlet extends HttpServlet {
             ClientNoShowPenaltyDAO penaltyDAO = new ClientNoShowPenaltyDAO();
             int techId = currentUser.getUserId();
 
-            // Fetch TECHNICIAN_COMPLETED (awaiting user confirm), FULLY_COMPLETED, and CLIENT_NO_SHOW
+            // Fetch TECHNICIAN_COMPLETED (awaiting user confirm), FULLY_COMPLETED, CLIENT_NO_SHOW, and NO_SHOW
             List<Booking> techCompleted   = bookingDAO.getBookingsByTechnicianAndStatus(techId, "TECHNICIAN_COMPLETED");
             List<Booking> fullyCompleted  = bookingDAO.getBookingsByTechnicianAndStatus(techId, "FULLY_COMPLETED");
             List<Booking> clientNoShows   = bookingDAO.getBookingsByTechnicianAndStatus(techId, "CLIENT_NO_SHOW");
+            List<Booking> noShows         = bookingDAO.getBookingsByTechnicianAndStatus(techId, "NO_SHOW");
 
             List<Booking> allCompleted = new ArrayList<>();
             allCompleted.addAll(techCompleted);
             allCompleted.addAll(fullyCompleted);
             allCompleted.addAll(clientNoShows);
+            allCompleted.addAll(noShows);
 
             // Build set of booking IDs where technician has already submitted a CLIENT_RATING
             Set<Integer> ratedBookingIds = new HashSet<>();
