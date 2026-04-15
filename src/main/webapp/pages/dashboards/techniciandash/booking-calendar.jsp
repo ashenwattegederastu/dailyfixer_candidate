@@ -263,7 +263,8 @@
                         recurring: ${not empty booking.recurringContractId ? 'true' : 'false'},
                         recurringSeq: ${not empty booking.recurringSequence ? booking.recurringSequence : 0},
                         contractId: ${not empty booking.recurringContractId ? booking.recurringContractId : 0},
-                        updatedAt: ${not empty booking.updatedAt ? booking.updatedAt.time : 0}
+                        updatedAt: ${not empty booking.updatedAt ? booking.updatedAt.time : 0},
+                        chatId: ${bookingChatIds[booking.bookingId]}
             }<c:if test="${!loop.last}">,</c:if>
                     </c:forEach>
                 ];
@@ -471,11 +472,13 @@
                     var actions = document.getElementById('detailActions');
                     actions.innerHTML = '';
 
-                    var chatBtn = document.createElement('a');
-                    chatBtn.href = contextPath + '/chats/view?chatId=' + b.id;
-                    chatBtn.className = 'btn-chat';
-                    chatBtn.textContent = 'Open Chat';
-                    actions.appendChild(chatBtn);
+                    if (b.chatId) {
+                        var chatBtn = document.createElement('a');
+                        chatBtn.href = contextPath + '/chats/view?chatId=' + b.chatId;
+                        chatBtn.className = 'btn-chat';
+                        chatBtn.textContent = 'Open Chat';
+                        actions.appendChild(chatBtn);
+                    }
 
                     if (b.status === 'ACCEPTED') {
                         var startForm = document.createElement('form');
@@ -735,7 +738,9 @@
                     }
 
                     function buildActionsHtml(b) {
-                        var html = '<a href="' + contextPath + '/chats/view?chatId=' + b.id + '" class="btn-chat">Open Chat</a>';
+                        var html   = b.chatId
+                            ? '<a href="' + contextPath + '/chats/view?chatId=' + b.chatId + '" class="btn-chat">Open Chat</a>'
+                            : '';
                         var tenMin = 10 * 60 * 1000;
                         if (b.status === 'ACCEPTED') {
                             html += '<form method="post" action="' + contextPath + '/bookings/complete" class="action-form">'

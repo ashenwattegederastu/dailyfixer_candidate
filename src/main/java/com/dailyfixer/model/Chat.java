@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 
 public class Chat {
     private int chatId;
-    private int bookingId;
     private int userId;
     private int technicianId;
     private Timestamp createdAt;
@@ -12,7 +11,6 @@ public class Chat {
     // Extended fields for display
     private String userName;
     private String technicianName;
-    private String serviceName;
     private String userProfilePic;
     private String technicianProfilePic;
     private int unreadCount;
@@ -29,9 +27,6 @@ public class Chat {
     public int getChatId() { return chatId; }
     public void setChatId(int chatId) { this.chatId = chatId; }
 
-    public int getBookingId() { return bookingId; }
-    public void setBookingId(int bookingId) { this.bookingId = bookingId; }
-
     public int getUserId() { return userId; }
     public void setUserId(int userId) { this.userId = userId; }
 
@@ -46,9 +41,6 @@ public class Chat {
 
     public String getTechnicianName() { return technicianName; }
     public void setTechnicianName(String technicianName) { this.technicianName = technicianName; }
-
-    public String getServiceName() { return serviceName; }
-    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
 
     public int getUnreadCount() { return unreadCount; }
     public void setUnreadCount(int unreadCount) { this.unreadCount = unreadCount; }

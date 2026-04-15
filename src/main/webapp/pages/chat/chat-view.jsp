@@ -170,7 +170,7 @@
                                     </c:otherwise>
                                 </c:choose>
                             </h2>
-                            <p>${chat.serviceName}</p>
+
                         </div>
                     </div>
                 </div>

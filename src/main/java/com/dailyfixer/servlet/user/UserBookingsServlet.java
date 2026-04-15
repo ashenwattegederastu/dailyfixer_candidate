@@ -2,9 +2,11 @@ package com.dailyfixer.servlet.user;
 
 import com.dailyfixer.dao.BookingDAO;
 import com.dailyfixer.dao.BookingRatingDAO;
+import com.dailyfixer.dao.ChatDAO;
 import com.dailyfixer.dao.ClientNoShowPenaltyDAO;
 import com.dailyfixer.dao.RescheduleRequestDAO;
 import com.dailyfixer.model.Booking;
+import com.dailyfixer.model.Chat;
 import com.dailyfixer.model.ClientNoShowPenalty;
 import com.dailyfixer.model.RescheduleRequest;
 import com.dailyfixer.model.User;
@@ -105,6 +107,20 @@ public class UserBookingsServlet extends HttpServlet {
                     request.setAttribute("activeBookings", displayed);
                     request.setAttribute("pendingReschedules", pendingReschedules);
                     request.setAttribute("clientPenalties", clientPenalties);
+
+                    // Build bookingId → chatId map for the Message button
+                    ChatDAO chatDAO = new ChatDAO();
+                    Map<Integer, Integer> bookingChatIds = new HashMap<>();
+                    Map<Integer, Integer> pairChatCache = new HashMap<>(); // technicianId → chatId
+                    for (Booking b : displayed) {
+                        if (!pairChatCache.containsKey(b.getTechnicianId())) {
+                            Chat chat = chatDAO.getChatByPair(b.getUserId(), b.getTechnicianId());
+                            pairChatCache.put(b.getTechnicianId(), chat != null ? chat.getChatId() : 0);
+                        }
+                        bookingChatIds.put(b.getBookingId(), pairChatCache.get(b.getTechnicianId()));
+                    }
+                    request.setAttribute("bookingChatIds", bookingChatIds);
+
                     targetJsp = "/pages/dashboards/userdash/activeBookings.jsp";
                     break;
                 case "/completed":

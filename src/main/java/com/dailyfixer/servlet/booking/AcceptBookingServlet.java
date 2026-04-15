@@ -6,7 +6,6 @@ import com.dailyfixer.dao.ChatDAO;
 import com.dailyfixer.dao.RecurringContractDAO;
 import com.dailyfixer.dao.TechnicianDailyLimitDAO;
 import com.dailyfixer.model.Booking;
-import com.dailyfixer.model.Chat;
 import com.dailyfixer.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -58,13 +57,10 @@ public class AcceptBookingServlet extends HttpServlet {
                 bookingDAO.createRecurringBookings(booking.getRecurringContractId(), booking);
             }
 
-            // Create chat for this booking
+            // Create chat for this user-technician pair (once per pair, shared across all bookings)
             ChatDAO chatDAO = new ChatDAO();
-            Chat existingChat = chatDAO.getChatByBookingId(bookingId);
-            
-            if (existingChat == null) {
-                Chat chat = new Chat();
-                chat.setBookingId(bookingId);
+            if (chatDAO.getChatByPair(booking.getUserId(), booking.getTechnicianId()) == null) {
+                com.dailyfixer.model.Chat chat = new com.dailyfixer.model.Chat();
                 chat.setUserId(booking.getUserId());
                 chat.setTechnicianId(booking.getTechnicianId());
                 chatDAO.createChat(chat);

@@ -154,7 +154,6 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </h3>
-                                <p class="service-name">${chat.serviceName}</p>
                                 <c:if test="${not empty chat.lastMessage}">
                                     <p class="last-message">${chat.lastMessage}</p>
                                 </c:if>

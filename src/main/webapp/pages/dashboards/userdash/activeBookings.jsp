@@ -164,9 +164,11 @@
                                 </td>
                                 <td>
                                     <div class="action-buttons">
-                                        <a href="${pageContext.request.contextPath}/chats?userId=${fn:replace(b.technicianName, ' ', '')}"
-                                           class="btn-primary"
-                                           style="padding: 4px 10px; font-size: 0.8em; margin-right: 5px;">Message</a>
+                                        <c:if test="${bookingChatIds[b.bookingId] > 0}">
+                                            <a href="${pageContext.request.contextPath}/chats/view?chatId=${bookingChatIds[b.bookingId]}"
+                                               class="btn-primary"
+                                               style="padding: 4px 10px; font-size: 0.8em; margin-right: 5px;">Message</a>
+                                        </c:if>
 
                                         <%-- Confirm completion (TECHNICIAN_COMPLETED) --%>
                                         <c:if test="${b.status eq 'TECHNICIAN_COMPLETED'}">
