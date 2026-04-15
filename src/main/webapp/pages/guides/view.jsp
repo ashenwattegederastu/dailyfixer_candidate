@@ -287,6 +287,69 @@
                     font-size: 0.8rem;
                 }
 
+                .edit-comment-btn, .reply-btn, .edit-reply-btn, .delete-reply-btn {
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 0.8rem;
+                    margin-left: 6px;
+                }
+
+                .edit-comment-btn { color: var(--primary); }
+                .reply-btn { color: var(--primary); }
+                .edit-reply-btn { color: var(--primary); }
+                .delete-reply-btn { color: var(--destructive); }
+
+                .inline-edit-form, .inline-reply-form {
+                    display: none;
+                    margin-top: 10px;
+                }
+
+                .inline-edit-form textarea, .inline-reply-form textarea {
+                    width: 100%;
+                    padding: 10px;
+                    border: 2px solid var(--border);
+                    border-radius: var(--radius-md);
+                    background: var(--input);
+                    color: var(--foreground);
+                    resize: vertical;
+                    min-height: 70px;
+                    font-family: inherit;
+                    margin-bottom: 8px;
+                }
+
+                .inline-form-actions {
+                    display: flex;
+                    gap: 8px;
+                }
+
+                .creator-reply {
+                    margin-top: 12px;
+                    padding: 12px 14px;
+                    background: var(--accent);
+                    border-left: 3px solid var(--primary);
+                    border-radius: var(--radius-md);
+                }
+
+                .creator-reply-label {
+                    font-size: 0.78rem;
+                    font-weight: 600;
+                    color: var(--primary);
+                    margin-bottom: 4px;
+                }
+
+                .creator-reply-text {
+                    color: var(--foreground);
+                    line-height: 1.5;
+                    font-size: 0.95rem;
+                }
+
+                .creator-reply-date {
+                    font-size: 0.75rem;
+                    color: var(--muted-foreground);
+                    margin-top: 4px;
+                }
+
                 .edit-actions {
                     display: flex;
                     gap: 15px;
@@ -596,7 +659,10 @@
                                             (@${comment.username})</span>
                                         <div>
                                             <span class="comment-date">${comment.createdAt}</span>
+                                            <%-- Edit button: only visible to the comment owner --%>
                                             <c:if test="${comment.userId == currentUserId}">
+                                                <button type="button" class="edit-comment-btn"
+                                                    onclick="toggleForm('edit-${comment.commentId}')">Edit</button>
                                                 <form action="${pageContext.request.contextPath}/guides/comment"
                                                     method="post" style="display:inline;">
                                                     <input type="hidden" name="guideId" value="${guide.guideId}">
@@ -607,7 +673,81 @@
                                             </c:if>
                                         </div>
                                     </div>
+
                                     <p class="comment-text">${comment.comment}</p>
+
+                                    <%-- Inline edit form: only for comment owner --%>
+                                    <c:if test="${comment.userId == currentUserId}">
+                                        <div class="inline-edit-form" id="edit-${comment.commentId}">
+                                            <form action="${pageContext.request.contextPath}/guides/comment" method="post">
+                                                <input type="hidden" name="guideId" value="${guide.guideId}">
+                                                <input type="hidden" name="commentId" value="${comment.commentId}">
+                                                <input type="hidden" name="action" value="edit">
+                                                <textarea name="comment" required>${comment.comment}</textarea>
+                                                <div class="inline-form-actions">
+                                                    <button type="submit" class="btn-primary" style="font-size:0.85rem; padding:6px 14px;">Save</button>
+                                                    <button type="button" class="btn-secondary" style="font-size:0.85rem; padding:6px 14px;"
+                                                        onclick="toggleForm('edit-${comment.commentId}')">Cancel</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </c:if>
+
+                                    <%-- Creator reply block --%>
+                                    <c:if test="${not empty comment.reply}">
+                                        <div class="creator-reply">
+                                            <div class="creator-reply-label">Creator Reply</div>
+                                            <div class="creator-reply-text">${comment.reply}</div>
+                                            <div class="creator-reply-date">${comment.replyAt}</div>
+                                            <%-- Edit / delete reply: only for the guide creator --%>
+                                            <c:if test="${guide.createdBy == currentUserId}">
+                                                <div style="margin-top:8px; display:flex; gap:6px;">
+                                                    <button type="button" class="edit-reply-btn"
+                                                        onclick="toggleForm('editreply-${comment.commentId}')">Edit Reply</button>
+                                                    <form action="${pageContext.request.contextPath}/guides/comment" method="post" style="display:inline;">
+                                                        <input type="hidden" name="guideId" value="${guide.guideId}">
+                                                        <input type="hidden" name="commentId" value="${comment.commentId}">
+                                                        <input type="hidden" name="action" value="deleteReply">
+                                                        <button type="submit" class="delete-reply-btn">Delete Reply</button>
+                                                    </form>
+                                                </div>
+                                                <div class="inline-reply-form" id="editreply-${comment.commentId}">
+                                                    <form action="${pageContext.request.contextPath}/guides/comment" method="post">
+                                                        <input type="hidden" name="guideId" value="${guide.guideId}">
+                                                        <input type="hidden" name="commentId" value="${comment.commentId}">
+                                                        <input type="hidden" name="action" value="editReply">
+                                                        <textarea name="reply" required>${comment.reply}</textarea>
+                                                        <div class="inline-form-actions">
+                                                            <button type="submit" class="btn-primary" style="font-size:0.85rem; padding:6px 14px;">Save</button>
+                                                            <button type="button" class="btn-secondary" style="font-size:0.85rem; padding:6px 14px;"
+                                                                onclick="toggleForm('editreply-${comment.commentId}')">Cancel</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </c:if>
+                                        </div>
+                                    </c:if>
+
+                                    <%-- Reply form: guide creator, only when no reply exists yet --%>
+                                    <c:if test="${guide.createdBy == currentUserId && empty comment.reply}">
+                                        <div style="margin-top:8px;">
+                                            <button type="button" class="reply-btn"
+                                                onclick="toggleForm('reply-${comment.commentId}')">Reply</button>
+                                        </div>
+                                        <div class="inline-reply-form" id="reply-${comment.commentId}">
+                                            <form action="${pageContext.request.contextPath}/guides/comment" method="post">
+                                                <input type="hidden" name="guideId" value="${guide.guideId}">
+                                                <input type="hidden" name="commentId" value="${comment.commentId}">
+                                                <input type="hidden" name="action" value="reply">
+                                                <textarea name="reply" placeholder="Write your reply..." required></textarea>
+                                                <div class="inline-form-actions">
+                                                    <button type="submit" class="btn-primary" style="font-size:0.85rem; padding:6px 14px;">Post Reply</button>
+                                                    <button type="button" class="btn-secondary" style="font-size:0.85rem; padding:6px 14px;"
+                                                        onclick="toggleForm('reply-${comment.commentId}')">Cancel</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </c:if>
                                 </div>
                             </c:forEach>
                         </c:when>
@@ -729,6 +869,13 @@
                         closeFlagModal();
                     }
                 });
+
+                function toggleForm(id) {
+                    var el = document.getElementById(id);
+                    if (el) {
+                        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+                    }
+                }
             </script>
         </body>
 

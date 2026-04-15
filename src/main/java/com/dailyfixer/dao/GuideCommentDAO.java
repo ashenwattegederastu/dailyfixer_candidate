@@ -39,7 +39,7 @@ public class GuideCommentDAO {
         List<GuideComment> comments = new ArrayList<>();
         String sql = "SELECT c.*, u.username, u.first_name FROM guide_comments c " +
                 "JOIN users u ON c.user_id = u.user_id " +
-                "WHERE c.guide_id = ? ORDER BY c.created_at DESC";
+                "WHERE c.guide_id = ? ORDER BY c.created_at ASC";
 
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -53,6 +53,8 @@ public class GuideCommentDAO {
                 comment.setUserId(rs.getInt("user_id"));
                 comment.setComment(rs.getString("comment"));
                 comment.setCreatedAt(rs.getTimestamp("created_at"));
+                comment.setReply(rs.getString("reply"));
+                comment.setReplyAt(rs.getTimestamp("reply_at"));
                 comment.setUsername(rs.getString("username"));
                 comment.setUserFirstName(rs.getString("first_name"));
                 comments.add(comment);
@@ -61,6 +63,70 @@ public class GuideCommentDAO {
             e.printStackTrace();
         }
         return comments;
+    }
+
+    /**
+     * Edit the text of an existing comment. Only the comment owner can edit.
+     *
+     * @return true if updated successfully
+     */
+    public boolean updateComment(int commentId, int userId, String newText) {
+        String sql = "UPDATE guide_comments SET comment = ? WHERE comment_id = ? AND user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newText);
+            ps.setInt(2, commentId);
+            ps.setInt(3, userId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Add or update the guide creator's reply on a comment.
+     * The JOIN ensures only the actual guide creator can set a reply.
+     *
+     * @return true if updated successfully
+     */
+    public boolean addOrUpdateReply(int commentId, int creatorId, String reply) {
+        String sql = "UPDATE guide_comments c " +
+                "JOIN guides g ON c.guide_id = g.guide_id " +
+                "SET c.reply = ?, c.reply_at = NOW() " +
+                "WHERE c.comment_id = ? AND g.created_by = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, reply);
+            ps.setInt(2, commentId);
+            ps.setInt(3, creatorId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Delete the guide creator's reply from a comment.
+     * The JOIN ensures only the actual guide creator can remove a reply.
+     *
+     * @return true if updated successfully
+     */
+    public boolean deleteReply(int commentId, int creatorId) {
+        String sql = "UPDATE guide_comments c " +
+                "JOIN guides g ON c.guide_id = g.guide_id " +
+                "SET c.reply = NULL, c.reply_at = NULL " +
+                "WHERE c.comment_id = ? AND g.created_by = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, commentId);
+            ps.setInt(2, creatorId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -124,6 +190,8 @@ public class GuideCommentDAO {
                 comment.setUserId(rs.getInt("user_id"));
                 comment.setComment(rs.getString("comment"));
                 comment.setCreatedAt(rs.getTimestamp("created_at"));
+                comment.setReply(rs.getString("reply"));
+                comment.setReplyAt(rs.getTimestamp("reply_at"));
                 comment.setUsername(rs.getString("username"));
                 comment.setUserFirstName(rs.getString("first_name"));
                 comment.setGuideTitle(rs.getString("guide_title"));

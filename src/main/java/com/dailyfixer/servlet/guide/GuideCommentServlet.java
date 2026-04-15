@@ -59,6 +59,18 @@ public class GuideCommentServlet extends HttpServlet {
             if (comment != null && !comment.trim().isEmpty()) {
                 commentDAO.addComment(guideId, currentUser.getUserId(), comment.trim());
             }
+        } else if ("edit".equals(action)) {
+            // Edit own comment text
+            String commentIdParam = request.getParameter("commentId");
+            String newText = request.getParameter("comment");
+            if (commentIdParam != null && newText != null && !newText.trim().isEmpty()) {
+                try {
+                    int commentId = Integer.parseInt(commentIdParam);
+                    commentDAO.updateComment(commentId, currentUser.getUserId(), newText.trim());
+                } catch (NumberFormatException e) {
+                    // Ignore invalid ID
+                }
+            }
         } else if ("delete".equals(action)) {
             // Delete a comment (only if owner)
             String commentIdParam = request.getParameter("commentId");
@@ -68,6 +80,29 @@ public class GuideCommentServlet extends HttpServlet {
                     commentDAO.deleteComment(commentId, currentUser.getUserId());
                 } catch (NumberFormatException e) {
                     // Ignore invalid comment ID
+                }
+            }
+        } else if ("reply".equals(action) || "editReply".equals(action)) {
+            // Guide creator adds or updates a reply
+            String commentIdParam = request.getParameter("commentId");
+            String replyText = request.getParameter("reply");
+            if (commentIdParam != null && replyText != null && !replyText.trim().isEmpty()) {
+                try {
+                    int commentId = Integer.parseInt(commentIdParam);
+                    commentDAO.addOrUpdateReply(commentId, currentUser.getUserId(), replyText.trim());
+                } catch (NumberFormatException e) {
+                    // Ignore invalid ID
+                }
+            }
+        } else if ("deleteReply".equals(action)) {
+            // Guide creator deletes their reply
+            String commentIdParam = request.getParameter("commentId");
+            if (commentIdParam != null) {
+                try {
+                    int commentId = Integer.parseInt(commentIdParam);
+                    commentDAO.deleteReply(commentId, currentUser.getUserId());
+                } catch (NumberFormatException e) {
+                    // Ignore invalid ID
                 }
             }
         }

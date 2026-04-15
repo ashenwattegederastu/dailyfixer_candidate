@@ -10,6 +10,10 @@ public class GuideComment {
     private Timestamp createdAt;
 
     // For display purposes
+    private String reply;
+    private Timestamp replyAt;
+
+    // For display purposes
     private String username;
     private String userFirstName;
     private String guideTitle;
@@ -86,5 +90,21 @@ public class GuideComment {
 
     public void setGuideTitle(String guideTitle) {
         this.guideTitle = guideTitle;
+    }
+
+    public String getReply() {
+        return reply;
+    }
+
+    public void setReply(String reply) {
+        this.reply = reply;
+    }
+
+    public Timestamp getReplyAt() {
+        return replyAt;
+    }
+
+    public void setReplyAt(Timestamp replyAt) {
+        this.replyAt = replyAt;
     }
 }

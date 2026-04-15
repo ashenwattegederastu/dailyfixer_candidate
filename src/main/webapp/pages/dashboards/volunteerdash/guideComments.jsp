@@ -127,6 +127,69 @@
                                     color: var(--foreground);
                                     margin-bottom: 10px;
                                 }
+
+                                .creator-reply {
+                                    margin-top: 12px;
+                                    padding: 12px 14px;
+                                    background: var(--accent);
+                                    border-left: 3px solid var(--primary);
+                                    border-radius: var(--radius-md);
+                                }
+
+                                .creator-reply-label {
+                                    font-size: 0.78rem;
+                                    font-weight: 600;
+                                    color: var(--primary);
+                                    margin-bottom: 4px;
+                                }
+
+                                .creator-reply-text {
+                                    color: var(--foreground);
+                                    line-height: 1.5;
+                                    font-size: 0.95rem;
+                                }
+
+                                .creator-reply-date {
+                                    font-size: 0.75rem;
+                                    color: var(--muted-foreground);
+                                    margin-top: 4px;
+                                }
+
+                                .reply-action-btn {
+                                    background: transparent;
+                                    border: none;
+                                    cursor: pointer;
+                                    font-size: 0.82rem;
+                                    padding: 0;
+                                    margin-right: 8px;
+                                }
+
+                                .reply-action-btn.primary { color: var(--primary); }
+                                .reply-action-btn.danger { color: var(--destructive); }
+
+                                .inline-reply-form {
+                                    display: none;
+                                    margin-top: 10px;
+                                }
+
+                                .inline-reply-form textarea {
+                                    width: 100%;
+                                    padding: 10px;
+                                    border: 2px solid var(--border);
+                                    border-radius: var(--radius-md);
+                                    background: var(--input);
+                                    color: var(--foreground);
+                                    resize: vertical;
+                                    min-height: 70px;
+                                    font-family: inherit;
+                                    margin-bottom: 8px;
+                                    box-sizing: border-box;
+                                }
+
+                                .inline-form-actions {
+                                    display: flex;
+                                    gap: 8px;
+                                }
                             </style>
                         </head>
 
@@ -177,7 +240,54 @@
                                                     <%= c.getComment() %>
                                                 </div>
 
-                                                <!-- Optional: Add Reply or Delete functionality here later -->
+                                                <% if (c.getReply() != null && !c.getReply().isEmpty()) { %>
+                                                    <div class="creator-reply">
+                                                        <div class="creator-reply-label">Your Reply</div>
+                                                        <div class="creator-reply-text"><%= c.getReply() %></div>
+                                                        <div class="creator-reply-date"><%= sdf.format(c.getReplyAt()) %></div>
+                                                        <div style="margin-top:8px;">
+                                                            <button type="button" class="reply-action-btn primary"
+                                                                onclick="toggleForm('editreply-<%= c.getCommentId() %>')">Edit Reply</button>
+                                                            <form action="<%= request.getContextPath() %>/guides/comment" method="post" style="display:inline;">
+                                                                <input type="hidden" name="guideId" value="<%= c.getGuideId() %>">
+                                                                <input type="hidden" name="commentId" value="<%= c.getCommentId() %>">
+                                                                <input type="hidden" name="action" value="deleteReply">
+                                                                <button type="submit" class="reply-action-btn danger">Delete Reply</button>
+                                                            </form>
+                                                        </div>
+                                                        <div class="inline-reply-form" id="editreply-<%= c.getCommentId() %>">
+                                                            <form action="<%= request.getContextPath() %>/guides/comment" method="post">
+                                                                <input type="hidden" name="guideId" value="<%= c.getGuideId() %>">
+                                                                <input type="hidden" name="commentId" value="<%= c.getCommentId() %>">
+                                                                <input type="hidden" name="action" value="editReply">
+                                                                <textarea name="reply" required><%= c.getReply() %></textarea>
+                                                                <div class="inline-form-actions">
+                                                                    <button type="submit" class="btn-primary" style="font-size:0.82rem; padding:6px 14px;">Save</button>
+                                                                    <button type="button" class="btn-secondary" style="font-size:0.82rem; padding:6px 14px;"
+                                                                        onclick="toggleForm('editreply-<%= c.getCommentId() %>')">Cancel</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                <% } else { %>
+                                                    <div style="margin-top:8px;">
+                                                        <button type="button" class="reply-action-btn primary"
+                                                            onclick="toggleForm('reply-<%= c.getCommentId() %>')">Reply</button>
+                                                    </div>
+                                                    <div class="inline-reply-form" id="reply-<%= c.getCommentId() %>">
+                                                        <form action="<%= request.getContextPath() %>/guides/comment" method="post">
+                                                            <input type="hidden" name="guideId" value="<%= c.getGuideId() %>">
+                                                            <input type="hidden" name="commentId" value="<%= c.getCommentId() %>">
+                                                            <input type="hidden" name="action" value="reply">
+                                                            <textarea name="reply" placeholder="Write your reply..." required></textarea>
+                                                            <div class="inline-form-actions">
+                                                                <button type="submit" class="btn-primary" style="font-size:0.82rem; padding:6px 14px;">Post Reply</button>
+                                                                <button type="button" class="btn-secondary" style="font-size:0.82rem; padding:6px 14px;"
+                                                                    onclick="toggleForm('reply-<%= c.getCommentId() %>')">Cancel</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                <% } %>
                                             </div>
                                             <% } %>
                                     </div>
@@ -188,6 +298,14 @@
                                         </div>
                                         <% } %>
                             </main>
+                            <script>
+                                function toggleForm(id) {
+                                    var el = document.getElementById(id);
+                                    if (el) {
+                                        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+                                    }
+                                }
+                            </script>
                         </body>
 
                         </html>

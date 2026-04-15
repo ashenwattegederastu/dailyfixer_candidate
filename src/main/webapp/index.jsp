@@ -101,28 +101,28 @@
                 </section>
 
                 <!-- Features Section: Technician Booking -->
-                <section class="features-section" id="technician">
-                    <div class="features-container">
-                        <h2 class="section-title">Professional Technician Services</h2>
-                        <div class="features-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">✓</div>
-                                <h3>Certified Professionals</h3>
-                                <p>All technicians are verified and certified in their respective fields.</p>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">⏱️</div>
-                                <h3>Quick Response</h3>
-                                <p>Get a technician at your door within 24 hours in most areas.</p>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">💰</div>
-                                <h3>Transparent Pricing</h3>
-                                <p>No hidden fees. Get a quote before any work begins.</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+<%--                <section class="features-section" id="technician">--%>
+<%--                    <div class="features-container">--%>
+<%--                        <h2 class="section-title">Professional Technician Services</h2>--%>
+<%--                        <div class="features-grid">--%>
+<%--                            <div class="feature-card">--%>
+<%--                                <div class="feature-icon">✓</div>--%>
+<%--                                <h3>Certified Professionals</h3>--%>
+<%--                                <p>All technicians are verified and certified in their respective fields.</p>--%>
+<%--                            </div>--%>
+<%--                            <div class="feature-card">--%>
+<%--                                <div class="feature-icon">⏱️</div>--%>
+<%--                                <h3>Quick Response</h3>--%>
+<%--                                <p>Get is contact with a technician as soon as possible</p>--%>
+<%--                            </div>--%>
+<%--                            <div class="feature-card">--%>
+<%--                                <div class="feature-icon">💰</div>--%>
+<%--                                <h3>Transparent Pricing</h3>--%>
+<%--                                <p>No hidden fees. Get a quote before any work begins.</p>--%>
+<%--                            </div>--%>
+<%--                        </div>--%>
+<%--                    </div>--%>
+<%--                </section>--%>
 
                 <!-- Page-specific Scripts -->
                 <script>

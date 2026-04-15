@@ -55,7 +55,7 @@
                                 class="btn-login">
                                 <i class="ph ph-user"></i>
                             </a>
-                            <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Logout</a>
+                            <a href="${pageContext.request.contextPath}/logout" class="btn-logout"><i class="ph ph-sign-out"></i></a>
                         </c:when>
                         <c:otherwise>
                             <!-- Guest -->
