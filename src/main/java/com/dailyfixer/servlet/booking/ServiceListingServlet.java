@@ -36,14 +36,16 @@ public class ServiceListingServlet extends HttpServlet {
             // Get filter parameters
             String categoryFilter = request.getParameter("category");
             String searchQuery = request.getParameter("search");
+            String cityFilter = request.getParameter("city");
 
-            // Apply filters
+            // Apply category filter
             if (categoryFilter != null && !categoryFilter.isEmpty()) {
                 services = services.stream()
                     .filter(s -> categoryFilter.equalsIgnoreCase(s.getCategory()))
                     .toList();
             }
 
+            // Apply search filter
             if (searchQuery != null && !searchQuery.isEmpty()) {
                 String query = searchQuery.toLowerCase();
                 services = services.stream()
@@ -52,10 +54,38 @@ public class ServiceListingServlet extends HttpServlet {
                     .toList();
             }
 
+            // Build tech user map before city filtering (needed for dropdown + filter)
+            Map<Integer, User> techUsers = new HashMap<>();
+            for (Service s : services) {
+                int tid = s.getTechnicianId();
+                if (!techUsers.containsKey(tid)) {
+                    techUsers.put(tid, userDAO.getUserById(tid));
+                }
+            }
+
+            // Collect distinct sorted cities for the dropdown
+            List<String> cities = techUsers.values().stream()
+                .filter(u -> u != null && u.getCity() != null && !u.getCity().isEmpty())
+                .map(User::getCity)
+                .distinct()
+                .sorted()
+                .toList();
+
+            // Apply city filter
+            if (cityFilter != null && !cityFilter.isEmpty()) {
+                final String cityLower = cityFilter.toLowerCase();
+                services = services.stream()
+                    .filter(s -> {
+                        User tech = techUsers.get(s.getTechnicianId());
+                        return tech != null && tech.getCity() != null
+                            && tech.getCity().toLowerCase().equals(cityLower);
+                    })
+                    .toList();
+            }
+
             // Build rating maps keyed by technicianId
             Map<Integer, Double> techAvgRatings = new HashMap<>();
             Map<Integer, Integer> techRatingCounts = new HashMap<>();
-            Map<Integer, User> techUsers = new HashMap<>();
             Map<Integer, Integer> techJobsCount = new HashMap<>();
 
             for (Service s : services) {
@@ -63,14 +93,15 @@ public class ServiceListingServlet extends HttpServlet {
                 if (!techAvgRatings.containsKey(tid)) {
                     techAvgRatings.put(tid, ratingDAO.getAverageRatingForTechnician(tid));
                     techRatingCounts.put(tid, ratingDAO.getRatingCountForTechnician(tid));
-                    techUsers.put(tid, userDAO.getUserById(tid));
                     techJobsCount.put(tid, bookingDAO.countCompletedBookingsByTechnician(tid));
                 }
             }
 
             request.setAttribute("services", services);
             request.setAttribute("categories", categories);
+            request.setAttribute("cities", cities);
             request.setAttribute("selectedCategory", categoryFilter);
+            request.setAttribute("selectedCity", cityFilter);
             request.setAttribute("searchQuery", searchQuery);
             request.setAttribute("techAvgRatings", techAvgRatings);
             request.setAttribute("techRatingCounts", techRatingCounts);

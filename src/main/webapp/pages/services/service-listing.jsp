@@ -39,6 +39,16 @@
                                     </c:forEach>
                                 </select>
                             </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">City</label>
+                                <select name="city"
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0; background: var(--input);">
+                                    <option value="">All Cities</option>
+                                    <c:forEach var="city" items="${cities}">
+                                        <option value="${city}" ${selectedCity==city ? 'selected' : ''}>${city}</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
                         </div>
                         <button type="submit"
                             style="background: var(--primary); color: var(--primary-foreground); padding: 0.5rem 1.5rem; border: none; border-radius: 0; font-weight: 600; cursor: pointer;">
