@@ -18,9 +18,9 @@ public class VolunteerRequestDAO {
     public int submitRequest(VolunteerRequest request) {
         String insertRequestSQL = "INSERT INTO volunteer_requests (full_name, username, email, phone, password_hash, city, "
                 +
-                "profile_picture_path, expertise, skill_level, experience_years, bio, sample_guide, sample_guide_file_path) "
+                "profile_picture_path, expertise, skill_level, bio, sample_guide_file_path) "
                 +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         String insertProofSQL = "INSERT INTO volunteer_proofs (request_id, proof_type, image_path, description, upload_order) "
                 +
                 "VALUES (?, ?, ?, ?, ?)";
@@ -45,10 +45,8 @@ public class VolunteerRequestDAO {
             psRequest.setString(7, request.getProfilePicturePath());
             psRequest.setString(8, request.getExpertise());
             psRequest.setString(9, request.getSkillLevel());
-            psRequest.setString(10, request.getExperienceYears());
-            psRequest.setString(11, request.getBio());
-            psRequest.setString(12, request.getSampleGuide());
-            psRequest.setString(13, request.getSampleGuideFilePath());
+            psRequest.setString(10, request.getBio());
+            psRequest.setString(11, request.getSampleGuideFilePath());
             psRequest.executeUpdate();
 
             rs = psRequest.getGeneratedKeys();

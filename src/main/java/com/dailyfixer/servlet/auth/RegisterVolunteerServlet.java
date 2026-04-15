@@ -91,9 +91,7 @@ public class RegisterVolunteerServlet extends HttpServlet {
             }
 
             String skillLevel = req.getParameter("skillLevel");
-            String experienceYears = req.getParameter("experienceYears");
             String bio = req.getParameter("bio");
-            String sampleGuide = req.getParameter("sampleGuide");
 
             // Handle sample guide PDF upload
             String sampleGuideFilePath = null;
@@ -136,9 +134,7 @@ public class RegisterVolunteerServlet extends HttpServlet {
             request.setProfilePicturePath(profilePicPath);
             request.setExpertise(expertise);
             request.setSkillLevel(skillLevel);
-            request.setExperienceYears(experienceYears);
             request.setBio(bio != null ? bio.trim() : "");
-            request.setSampleGuide(sampleGuide != null ? sampleGuide.trim() : "");
             request.setSampleGuideFilePath(sampleGuideFilePath);
             request.setProofs(proofs);
 

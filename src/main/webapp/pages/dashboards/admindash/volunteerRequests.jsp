@@ -172,7 +172,6 @@
                                         <th>Email</th>
                                         <th>Expertise</th>
                                         <th>Skill Level</th>
-                                        <th>Experience</th>
                                         <th>Status</th>
                                         <th>Submitted</th>
                                         <th>Actions</th>
@@ -192,7 +191,6 @@
                                                 </div>
                                             </td>
                                             <td>${req.skillLevel}</td>
-                                            <td>${req.experienceYears} yrs</td>
                                             <td><span class="status-badge status-${req.status}">${req.status}</span>
                                             </td>
                                             <td>${req.submittedDate}</td>

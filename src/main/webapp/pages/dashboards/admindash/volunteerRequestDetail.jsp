@@ -419,10 +419,6 @@
                                     <span class="detail-label">Skill Level</span>
                                     <span class="detail-value">${volunteerRequest.skillLevel}</span>
                                 </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Experience</span>
-                                    <span class="detail-value">${volunteerRequest.experienceYears} years</span>
-                                </div>
                             </div>
 
                             <!-- Bio -->
