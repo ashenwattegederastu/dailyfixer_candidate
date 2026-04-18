@@ -1,10 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+    <%@ page session="true" %>
+    <%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
+    <%
+        String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+        ResourceBundle bundle = I18nUtil.getBundle(lang);
+        String htmlLang = I18nUtil.normalizeLanguage(lang);
+    %>
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="<%= htmlLang %>">
 
     <head>
         <meta charset="UTF-8">
-        <title>Application Submitted - Daily Fixer</title>
+        <title><%= bundle.getString("auth.volunteerSuccess.pageTitle") %></title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
         <style>
             body {
@@ -104,22 +111,22 @@
         <div class="success-container">
             <div class="form-container">
                 <div class="success-icon">✓</div>
-                <h2>Application Submitted!</h2>
-                <p>Thank you for applying to become a DailyFixer Volunteer Guide Writer.</p>
-                <p>Your application is now under review by our admin team.</p>
+                <h2><%= bundle.getString("auth.volunteerSuccess.title") %></h2>
+                <p><%= bundle.getString("auth.volunteerSuccess.line1") %></p>
+                <p><%= bundle.getString("auth.volunteerSuccess.line2") %></p>
 
                 <div class="info-box">
-                    <h4>What happens next?</h4>
+                    <h4><%= bundle.getString("auth.volunteerSuccess.nextTitle") %></h4>
                     <ul>
-                        <li>Our admin team will review your application</li>
-                        <li>We'll check your qualifications and sample guide</li>
-                        <li>You'll be notified once a decision is made</li>
-                        <li>If approved, you can log in and start writing guides</li>
+                        <li><%= bundle.getString("auth.volunteerSuccess.next1") %></li>
+                        <li><%= bundle.getString("auth.volunteerSuccess.next2") %></li>
+                        <li><%= bundle.getString("auth.volunteerSuccess.next3") %></li>
+                        <li><%= bundle.getString("auth.volunteerSuccess.next4") %></li>
                     </ul>
                 </div>
 
                 <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp" class="btn-primary"
-                    style="width:100%;text-align:center;">Go to Login</a>
+                    style="width:100%;text-align:center;"><%= bundle.getString("auth.volunteerSuccess.goToLogin") %></a>
             </div>
         </div>
 

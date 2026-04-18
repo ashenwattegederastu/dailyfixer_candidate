@@ -39,5 +39,14 @@
         <url-pattern>/DeleteProductServlet</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>LanguageServlet</servlet-name>
+        <servlet-class>com.dailyfixer.servlet.i18n.LanguageServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LanguageServlet</servlet-name>
+        <url-pattern>/change-language</url-pattern>
+    </servlet-mapping>
+
 
 </web-app>

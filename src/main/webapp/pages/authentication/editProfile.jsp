@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 <%@ page import="com.dailyfixer.model.User" %>
+<%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
 
 <%
     User user = (User) session.getAttribute("currentUser");
@@ -26,14 +27,17 @@
             profilePath = "/pages/dashboards/userdash/myProfile.jsp";
             break;
     }
+    String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+    ResourceBundle bundle = I18nUtil.getBundle(lang);
+    String htmlLang = I18nUtil.normalizeLanguage(lang);
 %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<%= htmlLang %>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile - Daily Fixer</title>
+    <title><%= bundle.getString("auth.editProfile.pageTitle") %></title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
     <style>
@@ -60,7 +64,7 @@
 
 <main class="dashboard-container">
     <header class="dashboard-header" style="max-width: 800px; margin: 0 auto; margin-bottom: 20px;">
-        <h1>Edit Account Information</h1>
+        <h1><%= bundle.getString("auth.editProfile.title") %></h1>
     </header>
 
     <div class="form-container">
@@ -68,24 +72,24 @@
             <input type="hidden" name="userId" value="${sessionScope.currentUser.userId}">
 
             <div class="form-group">
-                <label>First Name</label>
+                <label><%= bundle.getString("auth.editProfile.firstName") %></label>
                 <input type="text" name="firstName" value="${sessionScope.currentUser.firstName}" required>
             </div>
 
             <div class="form-group">
-                <label>Last Name</label>
+                <label><%= bundle.getString("auth.editProfile.lastName") %></label>
                 <input type="text" name="lastName" value="${sessionScope.currentUser.lastName}" required>
             </div>
 
             <div class="form-group">
-                <label>Phone Number</label>
-                <input type="text" name="phoneNumber" value="${sessionScope.currentUser.phoneNumber}" required pattern="[0-9]{10}" title="Enter 10 digit phone number">
+                <label><%= bundle.getString("auth.editProfile.phoneNumber") %></label>
+                <input type="text" name="phoneNumber" value="${sessionScope.currentUser.phoneNumber}" required pattern="[0-9]{10}" title="<%= bundle.getString("auth.editProfile.phoneTitle") %>">
             </div>
 
             <div class="form-group">
-                <label>City</label>
+                <label><%= bundle.getString("auth.editProfile.city") %></label>
                 <select name="city" required>
-                    <option value="">Select City</option>
+                    <option value=""><%= bundle.getString("auth.editProfile.selectCity") %></option>
                     <c:forEach var="city" items="${['Colombo','Kandy','Galle','Matara','Jaffna','Kurunegala','Negombo','Anuradhapura','Ratnapura','Nuwara Eliya','Gampaha','Trincomalee','Badulla','Hambantota','Batticaloa','Kalutara','Polonnaruwa']}">
                         <option value="${city}" <c:if test="${sessionScope.currentUser.city == city}">selected</c:if>>${city}</option>
                     </c:forEach>
@@ -93,8 +97,8 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn-primary">Save Changes</button>
-                <a href="<%= request.getContextPath() + profilePath %>" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary"><%= bundle.getString("auth.editProfile.saveChanges") %></button>
+                <a href="<%= request.getContextPath() + profilePath %>" class="btn-secondary"><%= bundle.getString("auth.editProfile.cancel") %></a>
             </div>
         </form>
     </div>

@@ -1,11 +1,18 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
     <%@ page import="java.util.*" %>
+    <%@ page session="true" %>
+    <%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
+    <%
+        String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+        ResourceBundle bundle = I18nUtil.getBundle(lang);
+        String htmlLang = I18nUtil.normalizeLanguage(lang);
+    %>
         <!DOCTYPE html>
-        <html>
+        <html lang="<%= htmlLang %>">
 
         <head>
             <meta charset="UTF-8">
-            <title>Register Technician - DailyFixer</title>
+            <title><%= bundle.getString("auth.registerTechnician.pageTitle") %></title>
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
             <style>
                 body {
@@ -107,61 +114,61 @@
             <div class="register-container">
                 <div class="form-container">
                     <div class="page-header">
-                        <h2>Technician Account</h2>
-                        <p>Register to start accepting jobs</p>
+                        <h2><%= bundle.getString("auth.registerTechnician.title") %></h2>
+                        <p><%= bundle.getString("auth.registerTechnician.subtitle") %></p>
                     </div>
 
                     <div id="errorMsg" class="server-error" style="display: none;"></div>
 
                     <form method="post" action="${pageContext.request.contextPath}/registerTechnician" id="registerForm">
-                        <div class="section-title">Personal Details</div>
+                        <div class="section-title"><%= bundle.getString("auth.registerTechnician.personalDetails") %></div>
 
                         <div class="form-cols">
                             <div class="form-group">
-                                <label for="firstName">First Name</label>
-                                <input type="text" name="firstName" id="firstName" placeholder="First Name" required>
+                                <label for="firstName"><%= bundle.getString("auth.registerUser.firstName") %></label>
+                                <input type="text" name="firstName" id="firstName" placeholder="<%= bundle.getString("auth.registerUser.firstName") %>" required>
                             </div>
                             <div class="form-group">
-                                <label for="lastName">Last Name</label>
-                                <input type="text" name="lastName" id="lastName" placeholder="Last Name" required>
+                                <label for="lastName"><%= bundle.getString("auth.registerUser.lastName") %></label>
+                                <input type="text" name="lastName" id="lastName" placeholder="<%= bundle.getString("auth.registerUser.lastName") %>" required>
                             </div>
                         </div>
 
                         <div class="form-cols">
                             <div class="form-group">
-                                <label for="username">Username</label>
-                                <input type="text" name="username" id="username" placeholder="Username" required>
+                                <label for="username"><%= bundle.getString("auth.registerUser.username") %></label>
+                                <input type="text" name="username" id="username" placeholder="<%= bundle.getString("auth.registerUser.username") %>" required>
                             </div>
                             <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" name="email" id="email" placeholder="Email" required>
+                                <label for="email"><%= bundle.getString("auth.registerUser.emailAddress") %></label>
+                                <input type="email" name="email" id="email" placeholder="<%= bundle.getString("auth.registerUser.emailAddress") %>" required>
                             </div>
                         </div>
 
                         <div class="form-cols">
                             <div class="form-group">
-                                <label for="password">Password</label>
+                                <label for="password"><%= bundle.getString("auth.registerUser.password") %></label>
                                 <input type="password" name="password" id="password"
-                                    placeholder="Password (min 6 chars)" required>
+                                    placeholder="<%= bundle.getString("auth.registerTechnician.passwordPlaceholder") %>" required>
                             </div>
                             <div class="form-group">
-                                <label for="confirmPassword">Confirm Password</label>
+                                <label for="confirmPassword"><%= bundle.getString("auth.registerUser.confirmPassword") %></label>
                                 <input type="password" name="confirmPassword" id="confirmPassword"
-                                    placeholder="Confirm Password" required>
+                                    placeholder="<%= bundle.getString("auth.registerUser.confirmPassword") %>" required>
                             </div>
                         </div>
 
-                        <div class="section-title">Contact Information</div>
+                        <div class="section-title"><%= bundle.getString("auth.registerTechnician.contactInfo") %></div>
 
                         <div class="form-cols">
                             <div class="form-group">
-                                <label for="phone">Phone Number</label>
-                                <input type="text" name="phone" id="phone" placeholder="Phone Number">
+                                <label for="phone"><%= bundle.getString("auth.registerUser.phoneNumber") %></label>
+                                <input type="text" name="phone" id="phone" placeholder="<%= bundle.getString("auth.registerUser.phoneNumber") %>">
                             </div>
                             <div class="form-group">
-                                <label for="city">City</label>
+                                <label for="city"><%= bundle.getString("auth.registerUser.city") %></label>
                                 <select name="city" id="city" class="filter-select" style="width: 100%;" required>
-                                    <option value="">-- Select city --</option>
+                                    <option value=""><%= bundle.getString("auth.registerTechnician.selectCity") %></option>
                                     <% String[]
                                         cities={"Colombo","Kandy","Galle","Jaffna","Kurunegala","Matara","Trincomalee","Batticaloa","Negombo","Anuradhapura","Polonnaruwa","Badulla","Ratnapura","Puttalam","Kilinochchi","Mannar","Hambantota"};
                                         for (String c : cities) { %>
@@ -174,9 +181,9 @@
                         </div>
 
                         <button type="submit" class="btn-primary" style="width: 100%; margin-top: 24px;">Register
-                            Technician</button>
+                            <%= bundle.getString("auth.registerTechnician.registerButton") %></button>
                     </form>
-                    <p class="login-link">Already have an account? <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp">Login here</a></p>
+                    <p class="login-link"><%= bundle.getString("auth.registerUser.alreadyHaveAccount") %> <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp"><%= bundle.getString("auth.registerUser.loginHere") %></a></p>
                 </div>
             </div>
 
@@ -191,14 +198,14 @@
                     var confirmPassword = document.getElementById('confirmPassword').value;
                     var city = document.getElementById('city').value;
 
-                    if (!firstName) errorMsg.push("First Name is required.");
-                    if (!lastName) errorMsg.push("Last Name is required.");
-                    if (!username) errorMsg.push("Username is required.");
-                    if (!email) errorMsg.push("Email is required.");
-                    if (!password) errorMsg.push("Password is required.");
-                    if (password && password.length < 6) errorMsg.push("Password must be at least 6 characters.");
-                    if (password !== confirmPassword) errorMsg.push("Passwords do not match.");
-                    if (!city) errorMsg.push("City is required.");
+                    if (!firstName) errorMsg.push("<%= bundle.getString("auth.validation.firstNameRequiredWithPeriod") %>");
+                    if (!lastName) errorMsg.push("<%= bundle.getString("auth.validation.lastNameRequiredWithPeriod") %>");
+                    if (!username) errorMsg.push("<%= bundle.getString("auth.validation.usernameRequiredWithPeriod") %>");
+                    if (!email) errorMsg.push("<%= bundle.getString("auth.validation.emailRequiredWithPeriod") %>");
+                    if (!password) errorMsg.push("<%= bundle.getString("auth.validation.passwordRequiredWithPeriod") %>");
+                    if (password && password.length < 6) errorMsg.push("<%= bundle.getString("auth.validation.passwordMin6WithPeriod") %>");
+                    if (password !== confirmPassword) errorMsg.push("<%= bundle.getString("auth.validation.passwordsDoNotMatchWithPeriod") %>");
+                    if (!city) errorMsg.push("<%= bundle.getString("auth.validation.cityRequiredWithPeriod") %>");
 
                     var errorDiv = document.getElementById('errorMsg');
                     if (errorMsg.length > 0) {

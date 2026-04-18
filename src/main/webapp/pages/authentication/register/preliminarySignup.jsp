@@ -1,10 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+    <%@ page session="true" %>
+    <%@ page import="java.util.ResourceBundle, com.dailyfixer.util.I18nUtil" %>
+    <%
+        String lang = (String) session.getAttribute(I18nUtil.SESSION_LANG_KEY);
+        ResourceBundle bundle = I18nUtil.getBundle(lang);
+        String htmlLang = I18nUtil.normalizeLanguage(lang);
+    %>
         <!DOCTYPE html>
-        <html>
+        <html lang="<%= htmlLang %>">
 
         <head>
-            <title>Sign Up - Daily Fixer</title>
+            <title><%= bundle.getString("auth.preliminary.pageTitle") %></title>
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/framework.css">
             <style>
                 body {
@@ -137,53 +144,53 @@
         <body>
 
             <div class="main-content">
-                <h1 class="page-title">Join Daily Fixer</h1>
-                <p class="page-subtitle">Choose your role to get started</p>
+                <h1 class="page-title"><%= bundle.getString("auth.preliminary.pageTitle") %></h1>
+                <p class="page-subtitle"><%= bundle.getString("auth.preliminary.subtitle") %></p>
 
                 <div class="role-cards">
                     <a href="registerUser.jsp" class="role-card">
                         <div class="role-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icons/user2_signup.svg"
-                                alt="User" />
+                                alt="<%= bundle.getString("auth.preliminary.role.user") %>" />
                         </div>
-                        <h3>User</h3>
+                        <h3><%= bundle.getString("auth.preliminary.role.user") %></h3>
                     </a>
                     <a href="registerTechnician.jsp" class="role-card">
                         <div class="role-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icons/tech2_signup.svg"
-                                alt="Technician" />
+                                alt="<%= bundle.getString("auth.preliminary.role.technician") %>" />
                         </div>
-                        <h3>Technician</h3>
+                        <h3><%= bundle.getString("auth.preliminary.role.technician") %></h3>
                     </a>
                     <a href="registerVolunteer.jsp" class="role-card">
                         <div class="role-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icons/writer_signup.svg"
-                                alt="Volunteer" />
+                                alt="<%= bundle.getString("auth.preliminary.role.volunteer") %>" />
                         </div>
-                        <h3>Volunteer</h3>
+                        <h3><%= bundle.getString("auth.preliminary.role.volunteer") %></h3>
                     </a>
                     <a href="registerDriver.jsp" class="role-card">
                         <div class="role-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icons/driver_signup.svg"
-                                alt="Driver" />
+                                alt="<%= bundle.getString("auth.preliminary.role.driver") %>" />
                         </div>
-                        <h3>Driver</h3>
+                        <h3><%= bundle.getString("auth.preliminary.role.driver") %></h3>
                     </a>
                     <a href="registerStore.jsp" class="role-card">
                         <div class="role-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icons/entrepreneur.png"
-                                alt="Store Owner" />
+                                alt="<%= bundle.getString("auth.preliminary.role.storeOwner") %>" />
                         </div>
-                        <h3>Store Owner</h3>
+                        <h3><%= bundle.getString("auth.preliminary.role.storeOwner") %></h3>
                     </a>
                 </div>
 
                 <div class="bottom-actions">
                     <a href="${pageContext.request.contextPath}/pages/authentication/login.jsp" class="action-link">
-                        Already have an account? <strong>Log In</strong>
+                        <%= bundle.getString("auth.preliminary.alreadyHaveAccount") %> <strong><%= bundle.getString("auth.preliminary.logIn") %></strong>
                     </a>
                     <a href="${pageContext.request.contextPath}/index.jsp" class="action-link">
-                        Go Back Home
+                        <%= bundle.getString("auth.preliminary.goBackHome") %>
                     </a>
                 </div>
             </div>
